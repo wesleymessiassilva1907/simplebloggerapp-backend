@@ -4,7 +4,7 @@ on:
     inputs:
       image_name:
         type: string
-        required: true
+        default: 'wesleymessiassilva91/desafio-devsecops'
       context:
         type: string
         default: '.'
