@@ -3,78 +3,43 @@ name: ci-security
 on:
   workflow_call:
     inputs:
-      node_version:
-        type: string
-        default: '20'
-      run_zap:
-        type: boolean
-        default: true
-      port:
-        type: string
-        default: '3000'
-      health_path:
-        type: string
-        default: '/healthz'
+      node_version: { type: string, default: '20' }
+      run_zap: { type: boolean, default: true }
+      port: { type: string, default: '3000' }
+      health_path: { type: string, default: '/healthz' }
 
 permissions:
   contents: read
   security-events: write
+  actions: read 
 
 jobs:
   lint_test_sast_dast:
     runs-on: ubuntu-latest
-
     services:
       mongo:
         image: mongo:6
-        ports:
-          - 27017:27017
+        ports: [ "27017:27017" ]
         options: >-
           --health-cmd="mongosh --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
+          --health-interval=10s --health-timeout=5s --health-retries=5
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: 
           node-version: ${{ inputs.node_version }}
-          cache: npm
-
-      - name: Install deps
-        run: npm ci
-
+          cache: npm 
+      - run: npm ci
       - name: ESLint
         run: npx eslint . --max-warnings=0
 
       - name: CodeQL init
         uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
+        with: { languages: javascript }
 
       - name: CodeQL analyze
         uses: github/codeql-action/analyze@v3
-        with:
-          category: /language:javascript
-
-      - name: OSV Scanner (deps)
-        uses: google/osv-scanner-action@v1
-        with:
-          scan-args: |
-            --recursive
-            --format sarif
-            --output osv.sarif
-            .
-
-      - name: Upload OSV results (SARIF)
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: osv.sarif
+        with: { category: /language:javascript }
 
       - name: Trivy (filesystem)
         uses: aquasecurity/trivy-action@0.28.0
@@ -105,3 +70,16 @@ jobs:
           cmd_options: -a -m 2 -r zap-report.html
           fail_action: true
           artifact_name: zap_local_report
+
+  # ✅ OSV como job separado usando o workflow oficial
+  osv_scan:
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.2.2"
+    permissions:
+      actions: read
+      security-events: write
+      contents: read
+    with:
+      # args padrão (procura lockfiles recursivamente)
+      scan-args: |-
+        --recursive
+        ./
