@@ -28,7 +28,6 @@ jobs:
       - uses: actions/setup-node@v4
         with: 
           node-version: ${{ inputs.node_version }}
-          cache: npm 
       - run: npm ci
       - name: ESLint
         run: npx eslint . --max-warnings=0
