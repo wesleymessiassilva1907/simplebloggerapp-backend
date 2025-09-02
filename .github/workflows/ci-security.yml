@@ -28,6 +28,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: 
           node-version: ${{ inputs.node_version }}
+  
+      - name: Instalar dependências
+        run: npm install --no-fund --no-audit
+          
       - run: npm ci
       - name: ESLint
         run: npx eslint . --max-warnings=0
@@ -70,7 +74,6 @@ jobs:
           fail_action: true
           artifact_name: zap_local_report
 
-  # ✅ OSV como job separado usando o workflow oficial
   osv_scan:
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.2.2"
     permissions:
