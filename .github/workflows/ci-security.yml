@@ -1,4 +1,5 @@
 name: ci-security
+
 on:
   workflow_call:
     inputs:
@@ -14,29 +15,38 @@ on:
       health_path:
         type: string
         default: '/healthz'
-    secrets: {}
 
 permissions:
   contents: read
   security-events: write
 
 jobs:
-  lint_test_codeql_osv_trivy:
+  lint_test_sast_dast:
     runs-on: ubuntu-latest
+
     services:
       mongo:
         image: mongo:6
-        ports: ['27017:27017']
+        ports:
+          - 27017:27017
         options: >-
           --health-cmd="mongosh --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval=10s --health-timeout=5s --health-retries=5
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with: { node-version: ${{ inputs.node_version }} }
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: npm
 
-      - run: npm ci
+      - name: Install deps
+        run: npm ci
 
       - name: ESLint
         run: npx eslint . --max-warnings=0
@@ -49,18 +59,18 @@ jobs:
       - name: CodeQL analyze
         uses: github/codeql-action/analyze@v3
         with:
-          category: 'javascript'
+          category: /language:javascript
 
-      - name: OSV-Scanner (deps)
-        uses: google/osv-scanner-action/osv-scanner-action@v1
+      - name: OSV Scanner (deps)
+        uses: google/osv-scanner-action@v1
         with:
-          scan-args: >-
+          scan-args: |
             --recursive
             --format sarif
             --output osv.sarif
             .
 
-      - name: Upload OSV results
+      - name: Upload OSV results (SARIF)
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
@@ -69,29 +79,29 @@ jobs:
       - name: Trivy (filesystem)
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          scan-type: 'fs'
+          scan-type: fs
           scan-ref: .
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
+          format: table
+          severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: '1'
 
-      - name: Start API (para DAST)
+      - name: Start API (for DAST)
         if: ${{ inputs.run_zap }}
         env:
           PORT: ${{ inputs.port }}
-          MONGODB_URI: 'mongodb://127.0.0.1:27017/blogger-ci'
+          MONGODB_URI: mongodb://127.0.0.1:27017/blogger-ci
           NODE_ENV: production
-          JWT_SECRET: 'ci-secret'
+          JWT_SECRET: ci-secret
         run: |
           nohup npm start >/tmp/app.log 2>&1 &
-          npx -y wait-on@7 tcp:${{ inputs.port }}
+          npx wait-on tcp:${{ inputs.port }}
 
-      - name: ZAP Baseline (DAST)
+      - name: ZAP Baseline
         if: ${{ inputs.run_zap }}
         uses: zaproxy/action-baseline@v0.14.0
         with:
           target: http://127.0.0.1:${{ inputs.port }}${{ inputs.health_path }}
-          cmd_options: '-a -m 2 -r zap-report.html'
+          cmd_options: -a -m 2 -r zap-report.html
           fail_action: true
-          artifact_name: 'zap_local_report'
+          artifact_name: zap_local_report
