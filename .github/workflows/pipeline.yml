@@ -20,7 +20,6 @@ jobs:
     needs: ci-security
     uses: ./.github/workflows/build-dockerhub.yml
     with:
-      image_repo: desafio-devsecops
       context: .
       dockerfile: Dockerfile
       push_latest: true
