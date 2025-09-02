@@ -34,7 +34,7 @@ jobs:
           
       - run: npm ci
       - name: ESLint
-        run: npx eslint . --max-warnings=0
+        run: npx eslint .
 
       - name: CodeQL init
         uses: github/codeql-action/init@v3

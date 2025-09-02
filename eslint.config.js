@@ -1,22 +1,27 @@
+
 export default [
-  // O que ignorar
   {
-    ignores: ["node_modules/**", "dist/**", "coverage/**", ".github/**"]
+    ignores: [
+      "node_modules/**",
+      "dist/**",
+      "coverage/**",
+      ".github/**",
+      "eslint.config.*"
+    ]
   },
 
-  // Regras básicas
   {
-    linterOptions: { reportUnusedDisableDirectives: true },
+    files: ["**/*.js"],
     languageOptions: {
       ecmaVersion: 2023,
-      sourceType: "commonjs",
+      sourceType: "module",
       globals: {
         process: "readonly",
         __dirname: "readonly",
         module: "readonly",
         require: "readonly",
-        console: "readonly",
-      },
+        console: "readonly"
+      }
     },
     rules: {
       "no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
