@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${APP_NAME}-${COLOR}
+  labels:
+    app: ${APP_NAME}
+    color: ${COLOR}
+spec:
+  replicas: ${REPLICAS}
+  selector:
+    matchLabels:
+      app: ${APP_NAME}
+      color: ${COLOR}
+  template:
+    metadata:
+      labels:
+        app: ${APP_NAME}
+        color: ${COLOR}
+    spec:
+      containers:
+        - name: api
+          image: ${IMAGE}
+          ports:
+            - containerPort: ${PORT}
+          readinessProbe:
+            httpGet: { path: ${HEALTH_PATH}, port: ${PORT} }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: ${HEALTH_PATH}, port: ${PORT} }
+            initialDelaySeconds: 15
+            periodSeconds: 10

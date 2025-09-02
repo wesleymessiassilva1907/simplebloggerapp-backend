@@ -1,0 +1,108 @@
+name: deploy-eks-bluegreen
+on:
+  workflow_call:
+    inputs:
+      aws_region:      { type: string, default: 'us-east-1' }
+      eks_cluster:     { type: string,  required: true }
+      namespace:       { type: string,  default: 'app' }
+      app_name:        { type: string,  default: 'desafio-devsecops' }
+      service_name:    { type: string,  default: 'desafio-devsecops-svc' }
+      image:           { type: string,  required: true }
+      port:            { type: string,  default: '3000' }
+      health_path:     { type: string,  default: '/healthz' }
+      replicas:        { type: number,  default: 2 }
+      alb_scheme:      { type: string,  default: 'internet-facing' }
+    secrets:
+      aws_access_key_id:     { required: true }
+      aws_secret_access_key: { required: true }
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ inputs.aws_region }}
+      NS: ${{ inputs.namespace }}
+      APP_NAME: ${{ inputs.app_name }}
+      SERVICE_NAME: ${{ inputs.service_name }}
+      IMAGE: ${{ inputs.image }}
+      PORT: ${{ inputs.port }}
+      HEALTH_PATH: ${{ inputs.health_path }}
+      REPLICAS: ${{ inputs.replicas }}
+      ALB_SCHEME: ${{ inputs.alb_scheme }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS (Access Key / Secret)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.aws_access_key_id }}
+          aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
+
+      - name: Kubeconfig
+        run: aws eks update-kubeconfig --name "${{ inputs.eks_cluster }}" --region "${{ env.AWS_REGION }}"
+
+      - name: Instalar envsubst
+        run: sudo apt-get update && sudo apt-get install -y gettext-base
+
+      - name: Detectar cor ativa e inativa
+        id: colors
+        shell: bash
+        run: |
+          set -e
+          ACTIVE=$(kubectl -n "$NS" get svc "$SERVICE_NAME" -o jsonpath='{.spec.selector.color}' 2>/dev/null || true)
+          [[ -z "$ACTIVE" ]] && ACTIVE=blue
+          [[ "$ACTIVE" == "blue" ]] && INACTIVE=green || INACTIVE=blue
+          echo "active=$ACTIVE"   >> $GITHUB_OUTPUT
+          echo "inactive=$INACTIVE" >> $GITHUB_OUTPUT
+
+      - name: Deploy lado inativo (${ steps.colors.outputs.inactive })
+        env:
+          COLOR: ${{ steps.colors.outputs.inactive }}
+        run: |
+          env | sort
+          envsubst < k8s/templates/deployment.yaml | kubectl -n "$NS" apply -f -
+          kubectl -n "$NS" rollout status deploy/${APP_NAME}-${COLOR} --timeout=180s
+
+      - name: Smoke test pré-switch (lado inativo)
+        env:
+          COLOR: ${{ steps.colors.outputs.inactive }}
+        run: |
+          kubectl -n "$NS" run curl-pre --rm -i --restart=Never --image=curlimages/curl:8.9.1 -- \
+            curl -fsS "http://${APP_NAME}-${COLOR}${HEALTH_PATH}"
+
+      - name: Switch do Service (aplicar template com ACTIVE_COLOR novo)
+        env:
+          ACTIVE_COLOR: ${{ steps.colors.outputs.inactive }}
+        run: |
+          envsubst < k8s/templates/service.yaml | kubectl -n "$NS" apply -f -
+
+      - name: Ingress ALB HTTP-only (idempotente)
+        run: |
+          envsubst < k8s/templates/ingress-alb-http.yaml | kubectl -n "$NS" apply -f -
+
+      - name: Smoke test pós-switch (Service estável)
+        id: post
+        run: |
+          kubectl -n "$NS" run curl-post --rm -i --restart=Never --image=curlimages/curl:8.9.1 -- \
+            curl -fsS "http://${SERVICE_NAME}${HEALTH_PATH}"
+
+      - name: Escalonar lado antigo para 0 (limpeza)
+        if: ${{ success() }}
+        env:
+          OLDCOLOR: ${{ steps.colors.outputs.active }}
+        run: |
+          kubectl -n "$NS" scale deploy/${APP_NAME}-${OLDCOLOR} --replicas=0 || true
+
+      - name: Rollback (se validação pós-switch falhar)
+        if: ${{ failure() }}
+        env:
+          ACTIVE_COLOR: ${{ steps.colors.outputs.active }}
+        run: |
+          echo "Falha na validação; revertendo selector do Service…"
+          envsubst < k8s/templates/service.yaml | kubectl -n "$NS" apply -f -
+          exit 1

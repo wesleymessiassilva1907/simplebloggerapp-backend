@@ -1,0 +1,97 @@
+name: ci-security
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        type: string
+        default: '20'
+      run_zap:
+        type: boolean
+        default: true
+      port:
+        type: string
+        default: '3000'
+      health_path:
+        type: string
+        default: '/healthz'
+    secrets: {}
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  lint_test_codeql_osv_trivy:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:6
+        ports: ['27017:27017']
+        options: >-
+          --health-cmd="mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: ${{ inputs.node_version }} }
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npx eslint . --max-warnings=0
+
+      - name: CodeQL init
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: CodeQL analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: 'javascript'
+
+      - name: OSV-Scanner (deps)
+        uses: google/osv-scanner-action/osv-scanner-action@v1
+        with:
+          scan-args: >-
+            --recursive
+            --format sarif
+            --output osv.sarif
+            .
+
+      - name: Upload OSV results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: osv.sarif
+
+      - name: Trivy (filesystem)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          scan-ref: .
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Start API (para DAST)
+        if: ${{ inputs.run_zap }}
+        env:
+          PORT: ${{ inputs.port }}
+          MONGODB_URI: 'mongodb://127.0.0.1:27017/blogger-ci'
+          NODE_ENV: production
+          JWT_SECRET: 'ci-secret'
+        run: |
+          nohup npm start >/tmp/app.log 2>&1 &
+          npx -y wait-on@7 tcp:${{ inputs.port }}
+
+      - name: ZAP Baseline (DAST)
+        if: ${{ inputs.run_zap }}
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: http://127.0.0.1:${{ inputs.port }}${{ inputs.health_path }}
+          cmd_options: '-a -m 2 -r zap-report.html'
+          fail_action: true
+          artifact_name: 'zap_local_report'

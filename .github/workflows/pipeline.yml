@@ -1,0 +1,55 @@
+name: pipeline
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ci-security:
+    uses: ./.github/workflows/ci-security.yml
+    with:
+      node_version: '20'
+      run_zap: true
+      port: '3000'
+      health_path: '/healthz'
+
+  build:
+    if: github.event_name == 'push'
+    needs: ci-security
+    uses: ./.github/workflows/build-dockerhub.yml
+    with:
+      image_name: ${{ secrets.DOCKERHUB_USERNAME }}/desafio-devsecops
+      context: .
+      dockerfile: Dockerfile
+      push_latest: true
+    secrets:
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  deploy:
+    if: github.event_name == 'push'
+    needs: build
+    uses: ./.github/workflows/deploy-eks-bluegreen.yml
+    with:
+      aws_region: us-east-1
+      eks_cluster: my-eks
+      namespace: app
+      app_name: desafio-devsecops
+      service_name: desafio-devsecops-svc
+      image: ${{ needs.build.outputs.image_sha }}
+      port: '3000'
+      health_path: '/healthz'
+      replicas: 2
+      ingress_enabled: true
+      ingress_class: alb
+      ingress_host: api.seudominio.com
+      certificate_arn: ${{ secrets.ACM_CERT_ARN }}
+      alb_scheme: internet-facing
+      alb_group_name: applications
+      nginx_tls_secret_name: ''
+      run_zap_post_switch: false
+      public_url: ''
+    secrets:
+      aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

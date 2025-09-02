@@ -1,0 +1,57 @@
+name: build-dockerhub
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        type: string
+        required: true
+      context:
+        type: string
+        default: '.'
+      dockerfile:
+        type: string
+        default: 'Dockerfile'
+      push_latest:
+        type: boolean
+        default: true
+    secrets:
+      dockerhub_username:
+        required: true
+      dockerhub_token:
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_sha: ${{ steps.meta.outputs.image_sha }}
+      tags: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.dockerhub_username }}
+          password: ${{ secrets.dockerhub_token }}
+
+      - name: Calcular tags
+        id: meta
+        shell: bash
+        run: |
+          SHA_TAG="${{ inputs.image_name }}:${GITHUB_SHA}"
+          TAGS="$SHA_TAG"
+          if [[ "${{ inputs.push_latest }}" == "true" ]]; then
+            TAGS="${TAGS}\n${{ inputs.image_name }}:latest"
+          fi
+          echo "image_sha=$SHA_TAG" >> "$GITHUB_OUTPUT"
+          echo -e "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & Push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          provenance: false

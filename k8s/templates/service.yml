@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${SERVICE_NAME}
+spec:
+  type: ClusterIP
+  selector:
+    app: ${APP_NAME}
+    color: ${ACTIVE_COLOR}
+  ports:
+    - name: http
+      port: 80
+      targetPort: ${PORT}
