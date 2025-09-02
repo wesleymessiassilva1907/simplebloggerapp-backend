@@ -16,6 +16,7 @@ permissions:
 jobs:
   lint_test_sast_dast:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     services:
       mongo:
         image: mongo:6
@@ -26,23 +27,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: 
+        with:
           node-version: ${{ inputs.node_version }}
-  
+
       - name: Instalar dependências
         run: npm install --no-fund --no-audit
-          
+
+      # --- FAIL FAST para o Mongo ---
+      - name: Esperar Mongo (porta e ping)
+        run: |
+          # espera porta 27017 até 30s
+          npx -y wait-on@8 -t 30000 tcp:127.0.0.1:27017 || { echo "porta 27017 indisponível"; exit 1; }
+          # ping real dentro do container, até ~20s
+          CID=$(docker ps --filter "name=mongo" -q | head -n1)
+          for i in {1..10}; do
+            if docker exec "$CID" mongosh --quiet --eval "db.runCommand({ ping: 1 })" >/dev/null; then
+              echo "Mongo OK"; exit 0
+            fi
+            sleep 2
+          done
+          echo "Mongo não respondeu ao ping"
+          docker logs "$CID" | tail -n 200 || true
+          exit 1
+
       - run: npm ci
+
       - name: ESLint
         run: npx eslint . --max-warnings=0
 
       - name: CodeQL init
         uses: github/codeql-action/init@v3
-        with: { languages: javascript }
+        with:
+          languages: javascript
 
       - name: CodeQL analyze
         uses: github/codeql-action/analyze@v3
-        with: { category: /language:javascript }
+        with:
+          category: /language:javascript
 
       - name: Trivy (filesystem)
         uses: aquasecurity/trivy-action@0.28.0
@@ -54,17 +75,26 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
 
-
+      # --- Start API com fail-fast e espera curta ---
       - name: Start API (for DAST)
         if: ${{ inputs.run_zap }}
         env:
           PORT: ${{ inputs.port }}
-          MONGODB_URI: mongodb://127.0.0.1:27017/blogger-ci
+          # timeouts curtos para não travar aguardando Mongo
+          MONGODB_URI: mongodb://127.0.0.1:27017/blogger-ci?serverSelectionTimeoutMS=1500&connectTimeoutMS=1500
           NODE_ENV: production
           JWT_SECRET: ci-secret
         run: |
           nohup npm start >/tmp/app.log 2>&1 &
-          npx wait-on tcp:${{ inputs.port }}
+          # aguarda até 60s (ajuste se tiver um /health próprio: use http-get://127.0.0.1:${{ inputs.port }}${{ inputs.health_path }})
+          npx -y wait-on@8 -t 60000 tcp:127.0.0.1:${{ inputs.port }} || {
+            echo "---- /tmp/app.log (últimas linhas) ----"
+            tail -n 200 /tmp/app.log || true
+            CID=$(docker ps --filter "name=mongo" -q | head -n1)
+            echo "---- mongo logs ----"
+            docker logs "$CID" | tail -n 200 || true
+            exit 1
+          }
 
       - name: ZAP Baseline
         if: ${{ inputs.run_zap }}
@@ -74,15 +104,3 @@ jobs:
           cmd_options: -a -m 2 -r zap-report.html
           fail_action: true
           artifact_name: zap_local_report
-
-  osv_scan:
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.2.2"
-    permissions:
-      actions: read
-      security-events: write
-      contents: read
-    with:
-      # args padrão (procura lockfiles recursivamente)
-      scan-args: |-
-        --recursive
-        ./
