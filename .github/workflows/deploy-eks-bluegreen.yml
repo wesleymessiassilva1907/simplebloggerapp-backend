@@ -8,7 +8,7 @@ on:
       app_name:        { type: string,  default: 'desafio-devsecops' }
       service_name:    { type: string,  default: 'desafio-devsecops-svc' }
       image:           { type: string,  required: true }
-      port:            { type: string,  default: '3000' }
+      port:            { type: string,  default: '5005' }
       health_path:     { type: string,  default: '/healthz' }
       replicas:        { type: number,  default: 2 }
       alb_scheme:      { type: string,  default: 'internet-facing' }

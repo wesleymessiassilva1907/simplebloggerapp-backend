@@ -12,7 +12,7 @@ jobs:
     with:
       node_version: '20'
       run_zap: true
-      port: '3000'
+      port: '5005'
       health_path: '/healthz'
 
   build:
@@ -38,7 +38,7 @@ jobs:
       app_name: desafio-devsecops
       service_name: desafio-devsecops-svc
       image: ${{ needs.build.outputs.image_sha }}
-      port: '3000'
+      port: '5005'
       health_path: '/healthz'
       replicas: 2
       alb_scheme: internet-facing

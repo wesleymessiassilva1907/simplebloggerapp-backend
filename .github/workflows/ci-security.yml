@@ -5,8 +5,8 @@ on:
     inputs:
       node_version: { type: string, default: '20' }
       run_zap: { type: boolean, default: true }
-      port: { type: string, default: '3000' }
-      health_path: { type: string, default: '/healthz' }
+      port: { type: string, default: '5005' }
+      health_path: { type: string, default: '/' }
 
 permissions:
   contents: read
@@ -54,31 +54,6 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
 
-      - name: DB ping (fail fast)
-        run: |
-          for i in {1..10}; do
-            if mongosh "mongodb://127.0.0.1:27017/blogger-ci" --eval "db.runCommand({ping:1})" --quiet; then
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "Mongo indisponível"; exit 1
-
-      - name: Start API (for DAST) - fast fail + logs
-        env:
-          PORT: ${{ inputs.port }}
-          # timeouts para o driver do Mongo não segurar a subida:
-          MONGODB_URI: mongodb://127.0.0.1:27017/blogger-ci?serverSelectionTimeoutMS=2000&connectTimeoutMS=2000
-          NODE_ENV: production
-          JWT_SECRET: ci-secret
-        run: |
-          nohup node server.js >/tmp/app.log 2>&1 &
-          # espere o endpoint de saúde (melhor que só "tcp:")
-          npx -y wait-on@8 -t 60000 "http-get://127.0.0.1:${{ inputs.port }}${{ inputs.health_path }}" || {
-            echo "---- /tmp/app.log (últimas linhas) ----"
-            tail -n 200 /tmp/app.log || true
-            exit 1
-          }
 
       - name: Start API (for DAST)
         if: ${{ inputs.run_zap }}
