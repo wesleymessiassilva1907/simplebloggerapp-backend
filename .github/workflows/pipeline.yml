@@ -20,7 +20,7 @@ jobs:
     needs: ci-security
     uses: ./.github/workflows/build-dockerhub.yml
     with:
-      image_repo: simpleblogger          # <— só o repositório
+      image_repo: desafio-devsecops
       context: .
       dockerfile: Dockerfile
       push_latest: true
@@ -34,11 +34,11 @@ jobs:
     uses: ./.github/workflows/deploy-eks-bluegreen.yml
     with:
       aws_region: us-east-1
-      eks_cluster: my-eks
+      eks_cluster: desafio-devsecops
       namespace: app
-      app_name: simpleblogger
-      service_name: simpleblogger-svc
-      image: ${{ needs.build.outputs.image_sha }}  # tag SHA publicado no Docker Hub
+      app_name: desafio-devsecops
+      service_name: desafio-devsecops-svc
+      image: ${{ needs.build.outputs.image_sha }}
       port: '3000'
       health_path: '/healthz'
       replicas: 2
