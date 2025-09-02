@@ -1,4 +1,5 @@
 name: pipeline
+
 on:
   pull_request:
   push:
@@ -18,16 +19,14 @@ jobs:
     if: github.event_name == 'push'
     needs: ci-security
     uses: ./.github/workflows/build-dockerhub.yml
-    secrets:
-      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     with:
-      image_name: ${{ env.DOCKERHUB_USERNAME }}/simpleblogger
+      image_repo: simpleblogger          # <— só o repositório
       context: .
       dockerfile: Dockerfile
       push_latest: true
+    secrets:
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   deploy:
     if: github.event_name == 'push'
@@ -39,7 +38,7 @@ jobs:
       namespace: app
       app_name: simpleblogger
       service_name: simpleblogger-svc
-      image: ${{ needs.build.outputs.image_sha }}
+      image: ${{ needs.build.outputs.image_sha }}  # tag SHA publicado no Docker Hub
       port: '3000'
       health_path: '/healthz'
       replicas: 2
