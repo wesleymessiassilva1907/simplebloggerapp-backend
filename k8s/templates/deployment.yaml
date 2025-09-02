@@ -22,6 +22,9 @@ spec:
           image: ${IMAGE}
           ports:
             - containerPort: ${PORT}
+          envFrom:
+            - secretRef:
+                name: app-env
           readinessProbe:
             httpGet: { path: ${HEALTH_PATH}, port: ${PORT} }
             initialDelaySeconds: 5
