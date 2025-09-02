@@ -82,20 +82,13 @@ jobs:
       - name: Start API (for DAST) - fail fast + debug URI
         if: ${{ inputs.run_zap }}
         env:
-          PORT: ${{ inputs.port }}
-          MONGODB_URI: mongodb://127.0.0.1:27017/blogger-ci?serverSelectionTimeoutMS=1500&connectTimeoutMS=1500
-          MONGO_URI: mongodb://127.0.0.1:27017/blogger-ci?serverSelectionTimeoutMS=1500&connectTimeoutMS=1500
-          DATABASE_URL: mongodb://127.0.0.1:27017/blogger-ci?serverSelectionTimeoutMS=1500&connectTimeoutMS=1500
-          DB_URL: mongodb://127.0.0.1:27017/blogger-ci?serverSelectionTimeoutMS=1500&connectTimeoutMS=1500
+          PORT: ${{ inputs.port }}   # ex: 5005
+          DB_URI: mongodb://127.0.0.1:27017/blogger-ci?serverSelectionTimeoutMS=1500&connectTimeoutMS=1500
           NODE_ENV: production
           JWT_SECRET: ci-secret
         run: |
-          echo "DEBUG env PORT=$PORT"
-          node -e "console.log('DEBUG MONGODB_URI=', process.env.MONGODB_URI||'');console.log('DEBUG MONGO_URI=', process.env.MONGO_URI||'');console.log('DEBUG DATABASE_URL=', process.env.DATABASE_URL||'');console.log('DEBUG DB_URL=', process.env.DB_URL||'')"
-          # Rode node direto (sem nodemon) para evitar reinício e ruído
+          echo "DEBUG DB_URI=$DB_URI"
           nohup node server.js >/tmp/app.log 2>&1 &
-          # espere a app por até 60s; se tiver /healthz, prefira HTTP:
-          # npx -y wait-on@8 -t 60000 "http-get://127.0.0.1:${{ inputs.port }}${{ inputs.health_path }}"
           npx -y wait-on@8 -t 60000 "tcp:127.0.0.1:${{ inputs.port }}" || {
             echo "---- /tmp/app.log (últimas linhas) ----"
             tail -n 200 /tmp/app.log || true
