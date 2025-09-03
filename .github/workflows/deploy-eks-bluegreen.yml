@@ -15,6 +15,8 @@ on:
     secrets:
       aws_access_key_id:     { required: true }
       aws_secret_access_key: { required: true }
+      DB_URI:                { required: true }
+      JWT_SECRET:            { required: true }
 
 permissions:
   contents: read
@@ -59,6 +61,13 @@ jobs:
           [[ "$ACTIVE" == "blue" ]] && INACTIVE=green || INACTIVE=blue
           echo "active=$ACTIVE"   >> $GITHUB_OUTPUT
           echo "inactive=$INACTIVE" >> $GITHUB_OUTPUT
+
+      - name: Criar/atualizar Secret app-env (DB_URI/JWT)
+        env:
+          MONGO_APP_PASS: ${{ secrets.MONGO_APP_PASS }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          envsubst < k8s/templates/app-env-secret.yaml | kubectl -n "$NS" apply -f -
 
       - name: Deploy lado inativo (${ steps.colors.outputs.inactive })
         env:

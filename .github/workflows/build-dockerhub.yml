@@ -47,7 +47,7 @@ jobs:
               echo "${IMAGE_NAME}:latest"
             fi
             echo 'EOF'
-          } >> "$GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT" 
 
       - name: Build & Push
         uses: docker/build-push-action@v6

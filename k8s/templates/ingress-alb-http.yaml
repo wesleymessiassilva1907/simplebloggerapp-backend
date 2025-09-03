@@ -5,7 +5,7 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/scheme: ${ALB_SCHEME}        # internet-facing | internal
+    alb.ingress.kubernetes.io/scheme: ${ALB_SCHEME}
     alb.ingress.kubernetes.io/healthcheck-path: ${HEALTH_PATH}
 spec:
   ingressClassName: alb
