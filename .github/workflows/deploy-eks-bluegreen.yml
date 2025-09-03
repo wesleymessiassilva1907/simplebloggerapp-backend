@@ -15,7 +15,7 @@ on:
     secrets:
       aws_access_key_id:     { required: true }
       aws_secret_access_key: { required: true }
-      DB_URI:                { required: true }
+      DB_URI:                { required: true }   # <- string completa
       JWT_SECRET:            { required: true }
 
 permissions:
@@ -45,6 +45,17 @@ jobs:
           aws-access-key-id: ${{ secrets.aws_access_key_id }}
           aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
 
+      - name: Debug input image
+        run: echo "INPUT_IMAGE=${{ inputs.image }}"
+
+      - name: Checar IMAGE (fail-fast)
+        run: |
+          echo "IMAGE=$IMAGE"
+          if [ -z "${IMAGE:-}" ]; then
+            echo "::error::IMAGE vazio. Verifique needs.build.outputs.image_sha no orquestrador e o output do job de build."
+            exit 1
+          fi
+
       - name: Kubeconfig
         run: aws eks update-kubeconfig --name "${{ inputs.eks_cluster }}" --region "${{ env.AWS_REGION }}"
 
@@ -62,21 +73,30 @@ jobs:
           echo "active=$ACTIVE"   >> $GITHUB_OUTPUT
           echo "inactive=$INACTIVE" >> $GITHUB_OUTPUT
 
-      - name: Criar/atualizar Secret app-env (DB_URI/JWT)
-        env:
-          MONGO_APP_PASS: ${{ secrets.MONGO_APP_PASS }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      # ===== SECRET app-env SEM TEMPLATE (resolve ${ { secrets.* } } corretamente) =====
+      - name: Criar/atualizar Secret app-env (DB_URI/JWT) — sem template
         run: |
-          envsubst < k8s/templates/app-env-secret.yaml | kubectl -n "$NS" apply -f -
+          # fail-fast se vier vazio
+          test -n "${{ secrets.DB_URI }}"     || { echo "::error::DB_URI ausente"; exit 1; }
+          test -n "${{ secrets.JWT_SECRET }}" || { echo "::error::JWT_SECRET ausente"; exit 1; }
 
-      - name: Deploy lado inativo (${ steps.colors.outputs.inactive })
+          # aplica Secret com a URI completa (ex.: mongodb://appuser:AppPass123@mongo-mongodb.app.svc.cluster.local:27017/blogger?authSource=admin)
+          kubectl -n "$NS" create secret generic app-env \
+            --from-literal=DB_URI="${{ secrets.DB_URI }}" \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # imprime uma versão mascarada pra auditoria
+          MASKED="$(echo '${{ secrets.DB_URI }}' | sed -E 's#//([^:]+):([^@]+)@#//***:***@#')"
+          echo "DB_URI aplicado: ${MASKED}"
+
+      - name: Deploy lado inativo (${{ steps.colors.outputs.inactive }})
         env:
           COLOR: ${{ steps.colors.outputs.inactive }}
         run: |
-          env | sort
           envsubst < k8s/templates/deployment.yaml | kubectl -n "$NS" apply -f -
           kubectl -n "$NS" rollout status deploy/${APP_NAME}-${COLOR} --timeout=180s
-
+          
       - name: Smoke test pré-switch (lado inativo)
         env:
           COLOR: ${{ steps.colors.outputs.inactive }}
