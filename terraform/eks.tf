@@ -5,11 +5,20 @@ module "vpc" {
   name = "${local.name}-vpc"
   cidr = var.vpc_cidr
 
-  azs             = local.azs
-  public_subnets  = local.public_subnets
+  azs            = local.azs
+  public_subnets = local.public_subnets
 
   enable_nat_gateway = false
   create_igw         = true
+
+  # >>> GARANTE IP PÚBLICO NAS SUBNETS
+  map_public_ip_on_launch = true
+
+  # (Recomendado p/ EKS criar LBs públicos nessas subnets)
+  public_subnet_tags = {
+    "kubernetes.io/cluster/${local.name}-eks" = "shared"
+    "kubernetes.io/role/elb"                  = "1"
+  }
 
   manage_default_security_group = true
   default_security_group_ingress = [
@@ -27,7 +36,7 @@ module "vpc" {
       from_port   = 0
       to_port     = 0
       protocol    = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
+      cidr_blocks = "0.0.0.0/0"
     }
   ]
 

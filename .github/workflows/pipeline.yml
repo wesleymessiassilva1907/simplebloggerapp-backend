@@ -13,7 +13,7 @@ jobs:
       node_version: '20'
       run_zap: true
       port: '5005'
-      health_path: '/healthz'
+      health_path: '/'
 
   build:
     if: github.event_name == 'push'
@@ -38,8 +38,8 @@ jobs:
       service_name: desafio-devsecops-svc
       image: wesleymessiassilva91/desafio-devsecops:${{ github.sha }}
       port: '5005'
-      health_path: '/healthz'
-      replicas: 2
+      health_path: '/'
+      replicas: 1
       alb_scheme: internet-facing
     secrets:
       aws_access_key_id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
