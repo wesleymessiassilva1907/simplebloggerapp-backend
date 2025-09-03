@@ -15,7 +15,7 @@ on:
     secrets:
       aws_access_key_id:     { required: true }
       aws_secret_access_key: { required: true }
-      DB_URI:                { required: true }   # <- string completa
+      DB_URI:                { required: true }
       JWT_SECRET:            { required: true }
 
 permissions:
@@ -73,7 +73,7 @@ jobs:
           echo "active=$ACTIVE"   >> $GITHUB_OUTPUT
           echo "inactive=$INACTIVE" >> $GITHUB_OUTPUT
 
-      - name: Criar/atualizar Secret app-env (DB_URI/JWT) — sem template
+      - name: Criar/atualizar Secret app-env
         run: |
           test -n "${{ secrets.DB_URI }}"     || { echo "::error::DB_URI ausente"; exit 1; }
           test -n "${{ secrets.JWT_SECRET }}" || { echo "::error::JWT_SECRET ausente"; exit 1; }
@@ -102,24 +102,24 @@ jobs:
         run: |
           envsubst < k8s/templates/service.yaml | kubectl -n "$NS" apply -f -
 
-      - name: Ingress ALB HTTP-only (idempotente)
+      - name: Ingress ALB HTTP-only
         run: |
           envsubst < k8s/templates/ingress-alb-http.yaml | kubectl -n "$NS" apply -f -
 
-      - name: Smoke test pós-switch (Service estável)
+      - name: Smoke test pós-switch 
         id: post
         run: |
           kubectl -n "$NS" run curl-post --rm -i --restart=Never --image=curlimages/curl:8.9.1 -- \
             curl -fsS "http://${SERVICE_NAME}${HEALTH_PATH}"
 
-      - name: Escalonar lado antigo para 0 (limpeza)
+      - name: Escalonar lado antigo para 0 
         if: ${{ success() }}
         env:
           OLDCOLOR: ${{ steps.colors.outputs.active }}
         run: |
           kubectl -n "$NS" scale deploy/${APP_NAME}-${OLDCOLOR} --replicas=0 || true
 
-      - name: Rollback (se validação pós-switch falhar)
+      - name: Rollback 
         if: ${{ failure() }}
         env:
           ACTIVE_COLOR: ${{ steps.colors.outputs.active }}

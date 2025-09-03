@@ -39,7 +39,7 @@ jobs:
         if: ${{ hashFiles('package-lock.json','npm-shrinkwrap.json') != '' }}
         run: npm ci --no-fund --no-audit
 
-      - name: Esperar Mongo (porta e ping)
+      - name: Esperar Mongo
         run: |
           npx -y wait-on@8 -t 30000 tcp:127.0.0.1:27017 || { echo "porta 27017 indisponível"; exit 1; }
           CID=$(docker ps --filter "name=mongo" -q | head -n1)
@@ -53,11 +53,9 @@ jobs:
           docker logs "$CID" | tail -n 200 || true
           exit 1
 
-      # ===== ESLint =====
       - name: ESLint
         run: npx eslint . --max-warnings=0
 
-      # ===== CodeQL =====
       - name: CodeQL init
         uses: github/codeql-action/init@v3
         with:
@@ -68,7 +66,6 @@ jobs:
         with:
           category: /language:javascript
 
-      # ===== Trivy FS =====
       - name: Trivy (filesystem)
         uses: aquasecurity/trivy-action@0.28.0
         with:
@@ -98,7 +95,7 @@ jobs:
             exit 1
           }
 
-      - name: ZAP rules (ignorar avisos)
+      - name: ZAP rules
         if: ${{ inputs.run_zap }}
         shell: bash
         run: |
@@ -116,7 +113,7 @@ jobs:
           90005   IGNORE   Sec-Fetch-Dest Header is Missing
           TSV
 
-      - name: ZAP Baseline (suavizado)
+      - name: ZAP Baseline
         if: ${{ inputs.run_zap }}
         uses: zaproxy/action-baseline@v0.14.0
         with:
@@ -126,8 +123,6 @@ jobs:
           fail_action: false
           allow_issue_writing: false
           artifact_name: 'zap_local_report'
-
-
 
   osv_scan:
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.2.2"
