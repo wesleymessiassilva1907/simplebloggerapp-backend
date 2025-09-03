@@ -32,7 +32,7 @@ jobs:
     uses: ./.github/workflows/deploy-eks-bluegreen.yml
     with:
       aws_region: us-east-1
-      eks_cluster: my-eks
+      eks_cluster: desafio-devops-eks
       namespace: app
       app_name: desafio-devsecops
       service_name: desafio-devsecops-svc
