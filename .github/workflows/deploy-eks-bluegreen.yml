@@ -88,13 +88,32 @@ jobs:
         run: |
           envsubst < k8s/templates/deployment.yaml | kubectl -n "$NS" apply -f -
           kubectl -n "$NS" rollout status deploy/${APP_NAME}-${COLOR} --timeout=180s
-          
+
+
+      - name: Expor Service de preview (lado inativo)
+        env:
+          COLOR: ${{ steps.colors.outputs.inactive }}
+        run: |
+          kubectl -n "$NS" expose deploy/${APP_NAME}-${COLOR} \
+            --name ${APP_NAME}-${COLOR} \
+            --port ${PORT} --target-port ${PORT} \
+            --type ClusterIP \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Smoke test pré-switch (lado inativo)
         env:
           COLOR: ${{ steps.colors.outputs.inactive }}
         run: |
-          kubectl -n "$NS" run curl-pre --rm -i --restart=Never --image=curlimages/curl:8.9.1 -- \
+          kubectl -n "$NS" run curl-pre --rm --restart=Never --image=curlimages/curl:8.9.1 -- \
             curl -fsS "http://${APP_NAME}-${COLOR}${HEALTH_PATH}"
+
+      - name: Remover Service de preview
+        if: always()
+        env:
+          COLOR: ${{ steps.colors.outputs.inactive }}
+        run: |
+          kubectl -n "$NS" delete svc ${APP_NAME}-${COLOR} --ignore-not-found
+
 
       - name: Switch do Service (aplicar template com ACTIVE_COLOR novo)
         env:
