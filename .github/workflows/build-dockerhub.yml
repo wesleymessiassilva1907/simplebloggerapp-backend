@@ -23,9 +23,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      image_sha: ${{ steps.meta.outputs.image_sha }}
-      tags: ${{ steps.meta.outputs.tags }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,25 +32,13 @@ jobs:
           username: ${{ secrets.dockerhub_username }}
           password: ${{ secrets.dockerhub_token }}
 
-      - name: Compute image tags
-        id: meta
-        run: |
-          IMAGE_NAME="wesleymessiassilva91/desafio-devsecops"
-          echo "image_sha=${IMAGE_NAME}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-          {
-            echo 'tags<<EOF'
-            echo "${IMAGE_NAME}:${GITHUB_SHA}"
-            if [[ "${{ inputs.push_latest }}" == "true" ]]; then
-              echo "${IMAGE_NAME}:latest"
-            fi
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT" 
-
-      - name: Build & Push
+      - name: Build & Push (sha + latest)
         uses: docker/build-push-action@v6
         with:
           context: ${{ inputs.context }}
-          file: ${{ inputs.dockerfile }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          file:    ${{ inputs.dockerfile }}
+          push:    true
+          tags: |
+            ${{ secrets.dockerhub_username }}/desafio-devsecops:${{ github.sha }}
+            ${{ secrets.dockerhub_username }}/desafio-devsecops:latest
           provenance: false

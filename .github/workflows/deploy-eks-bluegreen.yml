@@ -73,22 +73,14 @@ jobs:
           echo "active=$ACTIVE"   >> $GITHUB_OUTPUT
           echo "inactive=$INACTIVE" >> $GITHUB_OUTPUT
 
-      # ===== SECRET app-env SEM TEMPLATE (resolve ${ { secrets.* } } corretamente) =====
       - name: Criar/atualizar Secret app-env (DB_URI/JWT) — sem template
         run: |
-          # fail-fast se vier vazio
           test -n "${{ secrets.DB_URI }}"     || { echo "::error::DB_URI ausente"; exit 1; }
           test -n "${{ secrets.JWT_SECRET }}" || { echo "::error::JWT_SECRET ausente"; exit 1; }
-
-          # aplica Secret com a URI completa (ex.: mongodb://appuser:AppPass123@mongo-mongodb.app.svc.cluster.local:27017/blogger?authSource=admin)
           kubectl -n "$NS" create secret generic app-env \
             --from-literal=DB_URI="${{ secrets.DB_URI }}" \
             --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             --dry-run=client -o yaml | kubectl apply -f -
-
-          # imprime uma versão mascarada pra auditoria
-          MASKED="$(echo '${{ secrets.DB_URI }}' | sed -E 's#//([^:]+):([^@]+)@#//***:***@#')"
-          echo "DB_URI aplicado: ${MASKED}"
 
       - name: Deploy lado inativo (${{ steps.colors.outputs.inactive }})
         env:

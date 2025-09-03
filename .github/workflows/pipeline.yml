@@ -28,22 +28,22 @@ jobs:
       dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   deploy:
-    if: github.event_name == 'push'
     needs: build
     uses: ./.github/workflows/deploy-eks-bluegreen.yml
     with:
       aws_region: us-east-1
-      eks_cluster: desafio-devops-eks
+      eks_cluster: my-eks
       namespace: app
       app_name: desafio-devsecops
       service_name: desafio-devsecops-svc
-      image: ${{ needs.build.outputs.image_sha }}
+      image: wesleymessiassilva91/desafio-devsecops:${{ github.sha }}
       port: '5005'
       health_path: '/healthz'
       replicas: 2
       alb_scheme: internet-facing
     secrets:
-      aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws_access_key_id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
       aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      DB_URI: ${{ secrets.DB_URI }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      DB_URI:                ${{ secrets.DB_URI }}
+      JWT_SECRET:            ${{ secrets.JWT_SECRET }}
+
