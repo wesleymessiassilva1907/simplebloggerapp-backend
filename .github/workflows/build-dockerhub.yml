@@ -35,17 +35,25 @@ jobs:
           username: ${{ secrets.dockerhub_username }}
           password: ${{ secrets.dockerhub_token }}
 
-      - name: Calcular tags
+      - name: Compute image tags
         id: meta
         shell: bash
         run: |
-          SHA_TAG="${{ inputs.image_name }}:${GITHUB_SHA}"
-          TAGS="$SHA_TAG"
-          if [[ "${{ inputs.push_latest }}" == "true" ]]; then
-            TAGS="${TAGS}\n${{ inputs.image_name }}:latest"
-          fi
-          echo "image_sha=$SHA_TAG" >> "$GITHUB_OUTPUT"
-          echo -e "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          IMAGE_NAME="${{ inputs.image_name }}"
+
+          # output 1: tag do SHA (string simples)
+          echo "image_sha=${IMAGE_NAME}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+          # output 2: lista de tags (multi-line via HEREDOC)
+          {
+            echo 'tags<<EOF'
+            echo "${IMAGE_NAME}:${GITHUB_SHA}"
+            if [[ "${{ inputs.push_latest }}" == "true" ]]; then
+              echo "${IMAGE_NAME}:latest"
+            fi
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build & Push
         uses: docker/build-push-action@v6
