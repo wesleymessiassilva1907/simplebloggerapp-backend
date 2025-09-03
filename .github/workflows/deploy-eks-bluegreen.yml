@@ -136,7 +136,7 @@ jobs:
             --restart=Never \
             --image=curlimages/curl:8.9.1 \
             --attach --rm -- \
-            curl -fsS "http://${SERVICE_NAME}:${PORT}${HEALTH_PATH}"
+            curl -fsS "http://${SERVICE_NAME}:80${HEALTH_PATH}"
 
       - name: Remover Service de preview
         if: always()
