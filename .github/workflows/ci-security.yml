@@ -98,12 +98,11 @@ jobs:
             exit 1
           }
 
-
-      - name: ZAP Baseline lite
+      - name: ZAP rules (ignorar avisos)
         if: ${{ inputs.run_zap }}
+        shell: bash
         run: |
           mkdir -p .zap
-          # Ignora os avisos mais comuns de headers/404 que apareceram no seu log
           cat > .zap/rules.tsv <<'TSV'
           10020   IGNORE   Missing Anti-clickjacking Header
           10021   IGNORE   X-Content-Type-Options Header Missing
@@ -116,20 +115,15 @@ jobs:
           90004   IGNORE   Insufficient Site Isolation (Spectre)
           90005   IGNORE   Sec-Fetch-Dest Header is Missing
           TSV
-        shell: bash
 
-      - name: ZAP Baseline
+      - name: ZAP Baseline (suavizado)
         if: ${{ inputs.run_zap }}
         uses: zaproxy/action-baseline@v0.14.0
         with:
-          # 👉 mire na raiz (se /healthz não existe, não use)
           target: http://127.0.0.1:${{ inputs.port }}/
           rules_file_name: '.zap/rules.tsv'
-          # remova '-a' para não ativar regras ALPHA; mantenha spider curto
-          cmd_options: '-m 1 -r zap-report.html'
-          # 👉 não falhar o job mesmo com alerts restantes
+          cmd_options: '-m 1'
           fail_action: false
-          # 👉 não tentar abrir issue (evita o 403)
           allow_issue_writing: false
           artifact_name: 'zap_local_report'
 
