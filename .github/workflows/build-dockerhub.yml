@@ -37,15 +37,9 @@ jobs:
 
       - name: Compute image tags
         id: meta
-        shell: bash
         run: |
-          set -euo pipefail
-          IMAGE_NAME="${{ inputs.image_name }}"
-
-          # output 1: tag do SHA (string simples)
+          IMAGE_NAME="wesleymessiassilva91/desafio-devsecops"
           echo "image_sha=${IMAGE_NAME}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
-
-          # output 2: lista de tags (multi-line via HEREDOC)
           {
             echo 'tags<<EOF'
             echo "${IMAGE_NAME}:${GITHUB_SHA}"
@@ -53,7 +47,7 @@ jobs:
               echo "${IMAGE_NAME}:latest"
             fi
             echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
+          } >> "$GITHUB_OUTPUT
 
       - name: Build & Push
         uses: docker/build-push-action@v6
