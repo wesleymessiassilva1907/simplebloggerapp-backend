@@ -93,31 +93,22 @@ jobs:
         env:
           COLOR: ${{ steps.colors.outputs.inactive }}
         run: |
-          # cria se não existir
           if ! kubectl -n "$NS" get svc ${APP_NAME}-${COLOR} >/dev/null 2>&1; then
             kubectl -n "$NS" expose deploy/${APP_NAME}-${COLOR} \
               --name ${APP_NAME}-${COLOR} \
               --port ${PORT} --target-port ${PORT} \
               --type ClusterIP
           fi
-
-          # espera o deployment e endpoints ficarem prontos
           kubectl -n "$NS" rollout status deploy/${APP_NAME}-${COLOR} --timeout=180s
-
           echo "Aguardando endpoints do service ${APP_NAME}-${COLOR}…"
           for i in {1..30}; do
             EP=$(kubectl -n "$NS" get ep ${APP_NAME}-${COLOR} -o jsonpath='{.subsets[*].addresses[*].ip}')
-            if [ -n "$EP" ]; then
-              echo "Endpoints: $EP"
-              break
-            fi
+            [ -n "$EP" ] && { echo "Endpoints: $EP"; break; }
             sleep 2
           done
-          if [ -z "$EP" ]; then
-            echo "::error::Service ${APP_NAME}-${COLOR} sem endpoints"
-            kubectl -n "$NS" get ep ${APP_NAME}-${COLOR} -o yaml
-            exit 1
-          fi
+          [ -n "$EP" ] || { echo "::error::Service ${APP_NAME}-${COLOR} sem endpoints"; kubectl -n "$NS" get ep ${APP_NAME}-${COLOR} -o yaml; exit 1; }
+
+
 
       - name: Smoke test pré-switch (lado inativo)
         env:
@@ -126,17 +117,8 @@ jobs:
           kubectl -n "$NS" run curl-pre \
             --restart=Never \
             --image=curlimages/curl:8.9.1 \
-            --attach=true \
-            --rm \
-            -- curl -fsS "http://${APP_NAME}-${COLOR}${HEALTH_PATH}"
-
-      - name: Remover Service de preview
-        if: always()
-        env:
-          COLOR: ${{ steps.colors.outputs.inactive }}
-        run: |
-          kubectl -n "$NS" delete svc ${APP_NAME}-${COLOR} --ignore-not-found
-
+            --attach --rm -- \
+            curl -fsS "http://${APP_NAME}-${COLOR}:${PORT}${HEALTH_PATH}"
 
       - name: Switch do Service (aplicar template com ACTIVE_COLOR novo)
         env:
@@ -148,11 +130,21 @@ jobs:
         run: |
           envsubst < k8s/templates/ingress-alb-http.yaml | kubectl -n "$NS" apply -f -
 
-      - name: Smoke test pós-switch 
-        id: post
+      - name: Smoke test pós-switch (Service estável)
         run: |
-          kubectl -n "$NS" run curl-post --rm -i --restart=Never --image=curlimages/curl:8.9.1 -- \
-            curl -fsS "http://${SERVICE_NAME}${HEALTH_PATH}"
+          kubectl -n "$NS" run curl-post \
+            --restart=Never \
+            --image=curlimages/curl:8.9.1 \
+            --attach --rm -- \
+            curl -fsS "http://${SERVICE_NAME}:${PORT}${HEALTH_PATH}"
+
+      - name: Remover Service de preview
+        if: always()
+        env:
+          COLOR: ${{ steps.colors.outputs.inactive }}
+        run: |
+          kubectl -n "$NS" delete svc ${APP_NAME}-${COLOR} --ignore-not-found
+
 
       - name: Escalonar lado antigo para 0 
         if: ${{ success() }}
