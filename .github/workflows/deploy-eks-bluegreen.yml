@@ -89,23 +89,46 @@ jobs:
           envsubst < k8s/templates/deployment.yaml | kubectl -n "$NS" apply -f -
           kubectl -n "$NS" rollout status deploy/${APP_NAME}-${COLOR} --timeout=180s
 
-
       - name: Expor Service de preview (lado inativo)
         env:
           COLOR: ${{ steps.colors.outputs.inactive }}
         run: |
-          kubectl -n "$NS" expose deploy/${APP_NAME}-${COLOR} \
-            --name ${APP_NAME}-${COLOR} \
-            --port ${PORT} --target-port ${PORT} \
-            --type ClusterIP \
-            --dry-run=client -o yaml | kubectl apply -f -
+          # cria se não existir
+          if ! kubectl -n "$NS" get svc ${APP_NAME}-${COLOR} >/dev/null 2>&1; then
+            kubectl -n "$NS" expose deploy/${APP_NAME}-${COLOR} \
+              --name ${APP_NAME}-${COLOR} \
+              --port ${PORT} --target-port ${PORT} \
+              --type ClusterIP
+          fi
+
+          # espera o deployment e endpoints ficarem prontos
+          kubectl -n "$NS" rollout status deploy/${APP_NAME}-${COLOR} --timeout=180s
+
+          echo "Aguardando endpoints do service ${APP_NAME}-${COLOR}…"
+          for i in {1..30}; do
+            EP=$(kubectl -n "$NS" get ep ${APP_NAME}-${COLOR} -o jsonpath='{.subsets[*].addresses[*].ip}')
+            if [ -n "$EP" ]; then
+              echo "Endpoints: $EP"
+              break
+            fi
+            sleep 2
+          done
+          if [ -z "$EP" ]; then
+            echo "::error::Service ${APP_NAME}-${COLOR} sem endpoints"
+            kubectl -n "$NS" get ep ${APP_NAME}-${COLOR} -o yaml
+            exit 1
+          fi
 
       - name: Smoke test pré-switch (lado inativo)
         env:
           COLOR: ${{ steps.colors.outputs.inactive }}
         run: |
-          kubectl -n "$NS" run curl-pre --rm --restart=Never --image=curlimages/curl:8.9.1 -- \
-            curl -fsS "http://${APP_NAME}-${COLOR}${HEALTH_PATH}"
+          kubectl -n "$NS" run curl-pre \
+            --restart=Never \
+            --image=curlimages/curl:8.9.1 \
+            --attach=true \
+            --rm \
+            -- curl -fsS "http://${APP_NAME}-${COLOR}${HEALTH_PATH}"
 
       - name: Remover Service de preview
         if: always()
