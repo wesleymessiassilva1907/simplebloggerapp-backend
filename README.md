@@ -857,7 +857,6 @@ This configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers 
 <p align="center">
   <img src="https://i.ibb.co/TM6fngWt/Captura-de-Tela-2025-09-03-a-s-13-00-32.png" alt="Lambda - call-endpoint" width="960"><br>
   <img src="https://i.ibb.co/ZRB8nytf/Captura-de-Tela-2025-09-03-a-s-13-01-11.png" alt="Lambda - código" width="960"><br>
-  <img src="https://i.ibb.co/5x5HDpzF/Captura-de-Tela-2025-09-03-a-s-13-01-25.png" alt="API Gateway - rota /webhook" width="960"><br>
   <img src="https://i.ibb.co/JWZY8Ygw/Captura-de-Tela-2025-09-03-a-s-13-05-40.png" alt="Docker Hub - Webhooks" width="960">
 </p>
 
