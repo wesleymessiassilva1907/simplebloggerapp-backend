@@ -153,16 +153,36 @@ export class RestaurantOrdersService {
   }
 
   async dashboard(tenantId: string) {
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfDay = new Date(startOfDay.getTime() + 86400000);
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
 
     const whereToday = {
       tenantId,
       createdAt: { gte: startOfDay, lt: endOfDay },
     };
 
-    const [todayOrders, allTodayOrders, ordersByChannel, ordersByStatus] = await Promise.all([
+    const [
+      todayOrders,
+      allTodayOrders,
+      ordersByChannel,
+      ordersByStatus,
+      thisMonthRevenue,
+      lastMonthRevenue,
+      ordersLast30Days,
+      pendingOldOrders,
+      unavailableDrivers,
+      todayOrderItems,
+      deliveredTodayOrders,
+      canceledThisMonth,
+      totalThisMonth,
+    ] = await Promise.all([
       this.prisma.restaurantOrder.aggregate({
         where: whereToday,
         _count: { id: true },
@@ -184,7 +204,109 @@ export class RestaurantOrdersService {
         where: whereToday,
         _count: { id: true },
       }),
+      this.prisma.restaurantOrder.aggregate({
+        where: { tenantId, createdAt: { gte: thisMonthStart, lt: thisMonthEnd }, status: { not: 'canceled' } },
+        _sum: { total: true },
+      }),
+      this.prisma.restaurantOrder.aggregate({
+        where: { tenantId, createdAt: { gte: lastMonthStart, lt: lastMonthEnd }, status: { not: 'canceled' } },
+        _sum: { total: true },
+      }),
+      this.prisma.restaurantOrder.findMany({
+        where: { tenantId, createdAt: { gte: thirtyDaysAgo }, status: { not: 'canceled' } },
+        select: { total: true, createdAt: true },
+      }),
+      this.prisma.restaurantOrder.count({
+        where: { tenantId, status: 'pending', createdAt: { lt: thirtyMinAgo } },
+      }),
+      this.prisma.restaurantDriver.count({
+        where: { tenantId, status: { in: ['offline'] } },
+      }),
+      this.prisma.restaurantOrderItem.findMany({
+        where: { tenantId, order: { createdAt: { gte: startOfDay, lt: endOfDay } } },
+        select: { name: true, quantity: true },
+      }),
+      this.prisma.restaurantOrder.findMany({
+        where: { tenantId, status: 'delivered', createdAt: { gte: startOfDay, lt: endOfDay } },
+        select: { createdAt: true, deliveredAt: true },
+      }),
+      this.prisma.restaurantOrder.count({
+        where: { tenantId, status: 'canceled', createdAt: { gte: thisMonthStart, lt: thisMonthEnd } },
+      }),
+      this.prisma.restaurantOrder.count({
+        where: { tenantId, createdAt: { gte: thisMonthStart, lt: thisMonthEnd } },
+      }),
     ]);
+
+    // Revenue by day (last 30 days)
+    const revenueByDayMap: Record<string, number> = {};
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      revenueByDayMap[d.toISOString().slice(0, 10)] = 0;
+    }
+    for (const o of ordersLast30Days) {
+      const key = o.createdAt.toISOString().slice(0, 10);
+      if (revenueByDayMap[key] !== undefined) {
+        revenueByDayMap[key] += Number(o.total);
+      }
+    }
+    const revenueByDay = Object.entries(revenueByDayMap).map(([date, value]) => ({ date, value }));
+
+    // Comparison vs last month
+    const currentRev = Number(thisMonthRevenue._sum.total || 0);
+    const previousRev = Number(lastMonthRevenue._sum.total || 0);
+    const comparisonVsLastMonth = {
+      current: currentRev,
+      previous: previousRev,
+      percentChange: previousRev > 0 ? Math.round(((currentRev - previousRev) / previousRev) * 100) : 0,
+    };
+
+    // Alerts
+    const alerts: { type: 'critical' | 'warning' | 'info'; message: string }[] = [];
+    if (pendingOldOrders > 0) {
+      alerts.push({ type: 'critical', message: `${pendingOldOrders} order(s) pending for over 30 minutes` });
+    }
+    if (unavailableDrivers > 0) {
+      alerts.push({ type: 'warning', message: `${unavailableDrivers} driver(s) currently offline` });
+    }
+    const todayTotal = todayOrders._count.id || 0;
+    if (todayTotal > 0) {
+      alerts.push({ type: 'info', message: `${todayTotal} order(s) received today` });
+    }
+
+    // Top menu items by quantity sold today
+    const itemQuantityMap: Record<string, number> = {};
+    for (const item of todayOrderItems) {
+      itemQuantityMap[item.name] = (itemQuantityMap[item.name] || 0) + item.quantity;
+    }
+    const topMenuItems = Object.entries(itemQuantityMap)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([name, value]) => ({ name, value, subtitle: 'units sold today' }));
+
+    // Status breakdown (today)
+    const statusBreakdown = ordersByStatus.map((s) => ({ name: s.status, value: s._count.id }));
+
+    // Average delivery time (today's delivered orders)
+    let avgDeliveryTime = 0;
+    if (deliveredTodayOrders.length > 0) {
+      const totalMinutes = deliveredTodayOrders.reduce((sum, o) => {
+        if (o.deliveredAt && o.createdAt) {
+          return sum + (o.deliveredAt.getTime() - o.createdAt.getTime()) / 60000;
+        }
+        return sum;
+      }, 0);
+      avgDeliveryTime = Math.round(totalMinutes / deliveredTodayOrders.length);
+    }
+
+    // Cancel rate this month
+    const cancelRate = totalThisMonth > 0 ? Math.round((canceledThisMonth / totalThisMonth) * 100) : 0;
+
+    // Channel breakdown (today)
+    const channelBreakdown = ordersByChannel.map((c) => ({
+      name: c.channel,
+      value: c._count.id,
+    }));
 
     return {
       today: {
@@ -201,6 +323,14 @@ export class RestaurantOrdersService {
         status: s.status,
         count: s._count.id,
       })),
+      revenueByDay,
+      comparisonVsLastMonth,
+      alerts,
+      topMenuItems,
+      statusBreakdown,
+      avgDeliveryTime,
+      cancelRate,
+      channelBreakdown,
     };
   }
 }
