@@ -54,8 +54,8 @@ export default function TasksPage() {
     { key: 'status', label: 'Status', render: (item: any) => <StatusBadge status={item.status} /> },
     { key: 'progressPercent', label: 'Progresso', render: (item: any) => (
       <div className="flex items-center gap-2">
-        <div className="w-20 bg-gray-200 rounded-full h-2"><div className="bg-primary-500 h-2 rounded-full" style={{ width: `${item.progressPercent}%` }} /></div>
-        <span className="text-xs text-gray-500">{item.progressPercent}%</span>
+        <div className="w-20 bg-[var(--bg-tertiary)] rounded-full h-2"><div className="bg-primary-500 h-2 rounded-full" style={{ width: `${item.progressPercent}%` }} /></div>
+        <span className="text-xs text-[var(--text-muted)]">{item.progressPercent}%</span>
       </div>
     )},
   ];
@@ -65,26 +65,26 @@ export default function TasksPage() {
       <PageHeader title="Tarefas" subtitle="Gerencie as tarefas dos projetos"
         action={<button onClick={() => { setEditItem(null); setForm({ projectId: '', name: '', description: '', startDate: '', endDate: '', status: 'pending', progressPercent: '0' }); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Nova Tarefa</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={tasks} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={tasks} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Tarefa' : 'Nova Tarefa'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Projeto *</label>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Projeto *</label>
             <select value={form.projectId} onChange={e => setForm({...form, projectId: e.target.value})} className="input-field" required>
               <option value="">Selecione...</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label><input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required /></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label><textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field" rows={2} /></div>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Nome *</label><input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required /></div>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Descrição</label><textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field" rows={2} /></div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Data Início</label><input type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Data Fim</label><input type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Data Início</label><input type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Data Fim</label><input type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} className="input-field" /></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Status</label>
               <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
                 <option value="pending">Pendente</option><option value="in_progress">Em Andamento</option><option value="completed">Concluído</option><option value="blocked">Bloqueado</option>
               </select></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Progresso (%)</label><input type="number" min="0" max="100" value={form.progressPercent} onChange={e => setForm({...form, progressPercent: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Progresso (%)</label><input type="number" min="0" max="100" value={form.progressPercent} onChange={e => setForm({...form, progressPercent: e.target.value})} className="input-field" /></div>
           </div>
           <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancelar</button><button type="submit" className="btn-primary">{editItem ? 'Salvar' : 'Cadastrar'}</button></div>
         </form>

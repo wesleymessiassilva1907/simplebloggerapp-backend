@@ -91,20 +91,20 @@ export default function DentalTreatmentPlansPage() {
       <PageHeader title="Planos de Tratamento" subtitle="Gerencie os planos de tratamento odontológico"
         action={<button onClick={() => { setEditItem(null); setForm(emptyForm); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Novo Plano</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={plans} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={plans} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Plano de Tratamento' : 'Novo Plano de Tratamento'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Paciente *</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Paciente *</label>
               <select value={form.patientId} onChange={e => setForm({...form, patientId: e.target.value})} className="input-field" required>
                 <option value="">Selecione...</option>
                 {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Dentista *</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Dentista *</label>
               <select value={form.dentistId} onChange={e => setForm({...form, dentistId: e.target.value})} className="input-field" required>
                 <option value="">Selecione...</option>
                 {dentists.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
@@ -112,16 +112,16 @@ export default function DentalTreatmentPlansPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Plano *</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Nome do Plano *</label>
             <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Descrição</label>
             <input value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Status</label>
               <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
                 <option value="proposto">Proposto</option>
                 <option value="aprovado">Aprovado</option>
@@ -131,26 +131,26 @@ export default function DentalTreatmentPlansPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Custo Total (R$)</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Custo Total (R$)</label>
               <input type="number" step="0.01" value={form.totalCost} onChange={e => setForm({...form, totalCost: e.target.value})} className="input-field" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Desconto (R$)</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Desconto (R$)</label>
               <input type="number" step="0.01" value={form.discount} onChange={e => setForm({...form, discount: e.target.value})} className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Data Início</label>
               <input type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} className="input-field" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Data Fim</label>
             <input type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} className="input-field" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Observações</label>
             <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field" rows={3} />
           </div>
           <div className="flex justify-end gap-3 pt-4">

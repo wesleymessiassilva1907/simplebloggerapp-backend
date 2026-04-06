@@ -78,21 +78,21 @@ export default function DentalTreatmentsPage() {
       <PageHeader title="Tratamentos Odontológicos" subtitle="Gerencie os tratamentos da clínica odontológica"
         action={<button onClick={() => { setEditItem(null); setForm(emptyForm); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Novo Tratamento</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={treatments} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={treatments} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Tratamento' : 'Novo Tratamento'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Nome *</label>
             <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Descrição</label>
             <input value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Categoria</label>
               <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="input-field">
                 <option value="">Selecione...</option>
                 <option value="preventivo">Preventivo</option>
@@ -104,20 +104,20 @@ export default function DentalTreatmentsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Duração (minutos)</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Duração (minutos)</label>
               <input type="number" value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} className="input-field" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Preço (R$)</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Preço (R$)</label>
             <input type="number" step="0.01" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="input-field" />
           </div>
           <div className="flex items-center gap-6">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
               <input type="checkbox" checked={form.toothRelated} onChange={e => setForm({...form, toothRelated: e.target.checked})} className="rounded" />
               Relacionado a Dente
             </label>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
               <input type="checkbox" checked={form.isActive} onChange={e => setForm({...form, isActive: e.target.checked})} className="rounded" />
               Ativo
             </label>

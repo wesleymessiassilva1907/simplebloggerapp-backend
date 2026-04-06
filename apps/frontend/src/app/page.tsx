@@ -16,10 +16,10 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-primary-600 mb-2">Vertix</h1>
-        <p className="text-gray-500">Carregando...</p>
+        <p className="text-[var(--text-muted)]">Carregando...</p>
       </div>
     </div>
   );

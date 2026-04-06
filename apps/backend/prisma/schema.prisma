@@ -132,6 +132,7 @@ model AuditLog {
   entity    String
   entityId  String?  @map("entity_id")
   metadata  Json?
+  deletedAt DateTime? @map("deleted_at")
   createdAt DateTime @default(now()) @map("created_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
@@ -206,6 +207,7 @@ model ClinicPatient {
   email            String?
   address          String?
   emergencyContact String?  @map("emergency_contact")
+  deletedAt        DateTime? @map("deleted_at")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -226,6 +228,7 @@ model ClinicDoctor {
   specialty String?
   crm       String?
   phone     String?
+  deletedAt DateTime? @map("deleted_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -246,6 +249,7 @@ model ClinicAppointment {
   appointmentDate DateTime @map("appointment_date")
   status          String   @default("scheduled") // scheduled, confirmed, in_progress, completed, canceled
   notes           String?
+  deletedAt       DateTime? @map("deleted_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -273,6 +277,7 @@ model ClinicMedicalRecord {
   diagnosis     String?
   prescription  String?
   attachmentId  String?  @map("attachment_id")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -298,6 +303,7 @@ model ClinicBilling {
   paymentMethod String?   @map("payment_method")
   dueDate       DateTime? @map("due_date")
   paidAt        DateTime? @map("paid_at")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -321,6 +327,7 @@ model ConstructionProject {
   budget      Decimal?
   status      String    @default("planning") // planning, in_progress, paused, completed, canceled
   location    String?
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
@@ -344,6 +351,7 @@ model ConstructionTask {
   endDate         DateTime? @map("end_date")
   status          String    @default("pending") // pending, in_progress, completed, blocked
   progressPercent Int       @default(0) @map("progress_percent")
+  deletedAt       DateTime? @map("deleted_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
@@ -364,6 +372,7 @@ model ConstructionExpense {
   amount      Decimal
   expenseDate DateTime @map("expense_date")
   supplier    String?
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -383,6 +392,7 @@ model ConstructionWorker {
   phone     String?
   role      String?
   dailyCost Decimal? @map("daily_cost")
+  deletedAt DateTime? @map("deleted_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -423,6 +433,7 @@ model BarbershopBarber {
   commission Decimal? @default(50) // percentage
   isActive  Boolean  @default(true) @map("is_active")
   avatarUrl String?  @map("avatar_url")
+  deletedAt DateTime? @map("deleted_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -461,6 +472,7 @@ model BarbershopClient {
   email     String?
   birthDate DateTime? @map("birth_date")
   notes     String?
+  deletedAt DateTime? @map("deleted_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -481,6 +493,7 @@ model BarbershopBooking {
   status      String   @default("scheduled") // scheduled, confirmed, in_progress, completed, canceled, no_show
   notes       String?
   totalPrice  Decimal? @map("total_price")
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -515,6 +528,7 @@ model BarbershopProduct {
   stock       Int      @default(0)
   category    String?  // pomada, shampoo, óleo, acessório
   isActive    Boolean  @default(true) @map("is_active")
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -534,6 +548,7 @@ model BarbershopOrder {
   paymentMethod String?   @map("payment_method") // pix, credit_card, debit_card, cash
   status        String    @default("pending") // pending, paid, canceled
   paidAt        DateTime? @map("paid_at")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -587,6 +602,7 @@ model RealEstateProperty {
   virtualTourUrl String?  @map("virtual_tour_url")
   condominium   Decimal?  // monthly condo fee
   iptu          Decimal?  // yearly property tax
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -612,6 +628,7 @@ model RealEstateClient {
   source        String?  // referral, website, instagram, event
   status        String   @default("active") // active, inactive, closed
   notes         String?
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -633,6 +650,7 @@ model RealEstateVisit {
   feedback    String?
   rating      Int?     // 1-5
   notes       String?
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -657,6 +675,7 @@ model RealEstateDeal {
   contractDate    DateTime? @map("contract_date")
   closingDate     DateTime? @map("closing_date")
   notes           String?
+  deletedAt       DateTime? @map("deleted_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
@@ -686,6 +705,7 @@ model NutritionPatient {
   restrictions    Json?     // dietary restrictions (vegan, lactose-free, etc.)
   objective       String?   // weight_loss, muscle_gain, health, sports
   notes           String?
+  deletedAt       DateTime? @map("deleted_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 

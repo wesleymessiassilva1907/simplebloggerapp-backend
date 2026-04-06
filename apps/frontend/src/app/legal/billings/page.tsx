@@ -340,7 +340,7 @@ export default function LegalBillingsPage() {
                 setEditItem(null);
                 setForm(initialForm);
               }}
-              className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border rounded-lg hover:bg-[var(--bg-primary)]"
             >
               Cancelar
             </button>

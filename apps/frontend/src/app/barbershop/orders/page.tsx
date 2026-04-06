@@ -74,7 +74,7 @@ export default function OrdersPage() {
     { key: 'totalAmount', label: 'Total', render: (item: any) => formatCurrency(item.totalAmount) },
     { key: 'paymentMethod', label: 'Pagamento', render: (item: any) => item.paymentMethod || '-' },
     { key: 'status', label: 'Status', render: (item: any) => (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[item.status] || 'bg-gray-100 text-gray-700'}`}>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[item.status] || 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]'}`}>
         {statusLabels[item.status] || item.status}
       </span>
     )},
@@ -85,25 +85,25 @@ export default function OrdersPage() {
       <PageHeader title="Comandas" subtitle="Gerencie as comandas e pagamentos"
         action={<button onClick={() => { setEditItem(null); setForm({ clientId: '', barberId: '', totalAmount: '', paymentMethod: 'PIX', status: 'pendente' }); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Nova Comanda</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={orders} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={orders} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Comanda' : 'Nova Comanda'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Cliente *</label>
             <select value={form.clientId} onChange={e => setForm({...form, clientId: e.target.value})} className="input-field" required>
               <option value="">Selecione um cliente</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Barbeiro *</label>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Barbeiro *</label>
             <select value={form.barberId} onChange={e => setForm({...form, barberId: e.target.value})} className="input-field" required>
               <option value="">Selecione um barbeiro</option>
               {barbers.filter(b => b.isActive !== false).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Total (R$) *</label><input type="number" step="0.01" min="0" value={form.totalAmount} onChange={e => setForm({...form, totalAmount: e.target.value})} className="input-field" required /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Pagamento *</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Total (R$) *</label><input type="number" step="0.01" min="0" value={form.totalAmount} onChange={e => setForm({...form, totalAmount: e.target.value})} className="input-field" required /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Pagamento *</label>
               <select value={form.paymentMethod} onChange={e => setForm({...form, paymentMethod: e.target.value})} className="input-field">
                 <option value="PIX">PIX</option>
                 <option value="Cartão Crédito">Cartão Crédito</option>
@@ -111,7 +111,7 @@ export default function OrdersPage() {
                 <option value="Dinheiro">Dinheiro</option>
               </select>
             </div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Status *</label>
               <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
                 <option value="pendente">Pendente</option>
                 <option value="pago">Pago</option>

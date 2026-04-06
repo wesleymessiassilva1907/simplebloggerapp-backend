@@ -60,35 +60,35 @@ export default function NutritionPatientsPage() {
       <PageHeader title="Pacientes Nutrição" subtitle="Gerencie os pacientes de nutrição"
         action={<button onClick={() => { setEditItem(null); setForm({ name: '', email: '', phone: '', cpf: '', birthDate: '', gender: 'masculino', height: '', currentWeight: '', targetWeight: '', objective: 'emagrecimento', notes: '' }); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Novo Paciente</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={patients} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={patients} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Paciente' : 'Novo Paciente'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label><input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required /></div>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Nome *</label><input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required /></div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label><input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Email</label><input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Telefone</label><input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="input-field" /></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">CPF</label><input value={form.cpf} onChange={e => setForm({...form, cpf: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label><input type="date" value={form.birthDate} onChange={e => setForm({...form, birthDate: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">CPF</label><input value={form.cpf} onChange={e => setForm({...form, cpf: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Data de Nascimento</label><input type="date" value={form.birthDate} onChange={e => setForm({...form, birthDate: e.target.value})} className="input-field" /></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Sexo</label>
               <select value={form.gender} onChange={e => setForm({...form, gender: e.target.value})} className="input-field">
                 <option value="masculino">Masculino</option><option value="feminino">Feminino</option><option value="outro">Outro</option>
               </select></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Objetivo</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Objetivo</label>
               <select value={form.objective} onChange={e => setForm({...form, objective: e.target.value})} className="input-field">
                 <option value="emagrecimento">Emagrecimento</option><option value="ganho muscular">Ganho Muscular</option><option value="saúde">Saúde</option><option value="esporte">Esporte</option>
               </select></div>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Altura (cm)</label><input type="number" step="0.1" value={form.height} onChange={e => setForm({...form, height: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Peso Atual (kg)</label><input type="number" step="0.1" value={form.currentWeight} onChange={e => setForm({...form, currentWeight: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Peso Meta (kg)</label><input type="number" step="0.1" value={form.targetWeight} onChange={e => setForm({...form, targetWeight: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Altura (cm)</label><input type="number" step="0.1" value={form.height} onChange={e => setForm({...form, height: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Peso Atual (kg)</label><input type="number" step="0.1" value={form.currentWeight} onChange={e => setForm({...form, currentWeight: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Peso Meta (kg)</label><input type="number" step="0.1" value={form.targetWeight} onChange={e => setForm({...form, targetWeight: e.target.value})} className="input-field" /></div>
           </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Observações</label><textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field" rows={2} /></div>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Observações</label><textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field" rows={2} /></div>
           <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancelar</button><button type="submit" className="btn-primary">{editItem ? 'Salvar' : 'Cadastrar'}</button></div>
         </form>
       </Modal>

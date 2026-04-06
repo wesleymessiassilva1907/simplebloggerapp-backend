@@ -155,7 +155,7 @@ export default function RestaurantMenuItemsPage() {
       header: 'Promoção',
       accessor: 'isPromotion' as keyof MenuItem,
       cell: (item: MenuItem) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${item.isPromotion ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+        <span className={`px-2 py-1 rounded-full text-xs ${item.isPromotion ? 'bg-yellow-100 text-yellow-800' : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)]'}`}>
           {item.isPromotion ? 'Sim' : 'Não'}
         </span>
       ),
@@ -316,7 +316,7 @@ export default function RestaurantMenuItemsPage() {
                 setEditItem(null);
                 setForm(initialForm);
               }}
-              className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border rounded-lg hover:bg-[var(--bg-primary)]"
             >
               Cancelar
             </button>

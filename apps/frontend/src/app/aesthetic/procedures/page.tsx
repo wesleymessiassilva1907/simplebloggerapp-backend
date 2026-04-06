@@ -84,21 +84,21 @@ export default function AestheticProceduresPage() {
       <PageHeader title="Procedimentos" subtitle="Gerencie os procedimentos estéticos"
         action={<button onClick={() => { setEditItem(null); setForm(emptyForm); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Novo Procedimento</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={procedures} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={procedures} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Procedimento' : 'Novo Procedimento'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Nome *</label>
             <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Descrição</label>
             <input value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Categoria</label>
               <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="input-field">
                 <option value="">Selecione...</option>
                 <option value="facial">Facial</option>
@@ -110,36 +110,36 @@ export default function AestheticProceduresPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Duração (minutos)</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Duração (minutos)</label>
               <input type="number" value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} className="input-field" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Preço (R$)</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Preço (R$)</label>
               <input type="number" step="0.01" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Custo por Sessão (R$)</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Custo por Sessão (R$)</label>
               <input type="number" step="0.01" value={form.costPerSession} onChange={e => setForm({...form, costPerSession: e.target.value})} className="input-field" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sessões Necessárias</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Sessões Necessárias</label>
               <input type="number" value={form.sessionsNeeded} onChange={e => setForm({...form, sessionsNeeded: e.target.value})} className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Intervalo (dias entre sessões)</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Intervalo (dias entre sessões)</label>
               <input type="number" value={form.interval} onChange={e => setForm({...form, interval: e.target.value})} className="input-field" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cuidados Pós-Procedimento</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Cuidados Pós-Procedimento</label>
             <textarea value={form.aftercare} onChange={e => setForm({...form, aftercare: e.target.value})} className="input-field" rows={3} />
           </div>
           <div className="flex items-center">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
               <input type="checkbox" checked={form.isActive} onChange={e => setForm({...form, isActive: e.target.checked})} className="rounded" />
               Ativo
             </label>

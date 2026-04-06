@@ -84,20 +84,20 @@ export default function AestheticAppointmentsPage() {
       <PageHeader title="Agendamentos Estética" subtitle="Gerencie os agendamentos da clínica estética"
         action={<button onClick={() => { setEditItem(null); setForm(emptyForm); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Novo Agendamento</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={appointments} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={appointments} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Agendamento' : 'Novo Agendamento'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Cliente *</label>
               <select value={form.clientId} onChange={e => setForm({...form, clientId: e.target.value})} className="input-field" required>
                 <option value="">Selecione...</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Procedimento *</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Procedimento *</label>
               <select value={form.procedureId} onChange={e => setForm({...form, procedureId: e.target.value})} className="input-field" required>
                 <option value="">Selecione...</option>
                 {procedures.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -106,17 +106,17 @@ export default function AestheticAppointmentsPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Data e Hora *</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Data e Hora *</label>
               <input type="datetime-local" value={form.appointmentDate} onChange={e => setForm({...form, appointmentDate: e.target.value})} className="input-field" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Número da Sessão</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Número da Sessão</label>
               <input type="number" value={form.sessionNumber} onChange={e => setForm({...form, sessionNumber: e.target.value})} className="input-field" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Status</label>
               <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
                 <option value="agendado">Agendado</option>
                 <option value="confirmado">Confirmado</option>
@@ -126,12 +126,12 @@ export default function AestheticAppointmentsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Profissional</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Profissional</label>
               <input value={form.professional} onChange={e => setForm({...form, professional: e.target.value})} className="input-field" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Observações</label>
             <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field" rows={3} />
           </div>
           <div className="flex justify-end gap-3 pt-4">

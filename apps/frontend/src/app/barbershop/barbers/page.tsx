@@ -62,18 +62,18 @@ export default function BarbersPage() {
       <PageHeader title="Barbeiros" subtitle="Gerencie a equipe de barbeiros"
         action={<button onClick={() => { setEditItem(null); setForm({ name: '', email: '', phone: '', specialty: '', commission: '50' }); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Novo Barbeiro</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={barbers} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={barbers} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Barbeiro' : 'Novo Barbeiro'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label><input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required /></div>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Nome *</label><input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required /></div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Especialidade</label><input value={form.specialty} onChange={e => setForm({...form, specialty: e.target.value})} className="input-field" placeholder="Corte, Barba, Coloração..." /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Comissão (%)</label><input type="number" min="0" max="100" value={form.commission} onChange={e => setForm({...form, commission: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Especialidade</label><input value={form.specialty} onChange={e => setForm({...form, specialty: e.target.value})} className="input-field" placeholder="Corte, Barba, Coloração..." /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Comissão (%)</label><input type="number" min="0" max="100" value={form.commission} onChange={e => setForm({...form, commission: e.target.value})} className="input-field" /></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label><input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Telefone</label><input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Email</label><input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="input-field" /></div>
           </div>
           <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancelar</button><button type="submit" className="btn-primary">{editItem ? 'Salvar' : 'Cadastrar'}</button></div>
         </form>

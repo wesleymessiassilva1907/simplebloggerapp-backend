@@ -36,13 +36,13 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Visão geral da plataforma</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Dashboard</h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">Visão geral da plataforma</p>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="text-gray-400">Carregando dados...</div>
+          <div className="text-[var(--text-muted)]">Carregando dados...</div>
         </div>
       ) : (
         <div className="space-y-8">
@@ -50,7 +50,7 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Stethoscope className="text-blue-600" size={20} />
-                <h2 className="text-lg font-semibold text-gray-800">Clínica Médica</h2>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Clínica Médica</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatsCard title="Total de Pacientes" value={clinicStats.totalPatients} icon={Users} color="blue" />
@@ -65,7 +65,7 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <HardHat className="text-orange-600" size={20} />
-                <h2 className="text-lg font-semibold text-gray-800">Construção Civil</h2>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Construção Civil</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatsCard title="Total de Projetos" value={constructionStats.totalProjects} icon={Building2} color="blue" />
@@ -74,14 +74,14 @@ export default function DashboardPage() {
                 <StatsCard title="Progresso Médio" value={`${constructionStats.avgProgress}%`} icon={ListTodo} color="yellow" subtitle={`${constructionStats.completedTasks}/${constructionStats.totalTasks} tarefas concluídas`} />
               </div>
               <div className="mt-4 card">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Utilização do Orçamento</h3>
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-2">Utilização do Orçamento</h3>
+                <div className="w-full bg-[var(--bg-tertiary)] rounded-full h-3">
                   <div
                     className={`h-3 rounded-full transition-all ${constructionStats.budgetUtilization > 90 ? 'bg-red-500' : constructionStats.budgetUtilization > 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
                     style={{ width: `${Math.min(constructionStats.budgetUtilization, 100)}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-[var(--text-muted)] mt-1">
                   <span>Gasto: {formatCurrency(constructionStats.totalExpenses)}</span>
                   <span>{constructionStats.budgetUtilization}%</span>
                 </div>
@@ -91,9 +91,9 @@ export default function DashboardPage() {
 
           {!clinicStats && !constructionStats && (
             <div className="card text-center py-12">
-              <Activity className="mx-auto text-gray-300 mb-4" size={48} />
-              <h3 className="text-lg font-medium text-gray-600">Sem dados disponíveis</h3>
-              <p className="text-sm text-gray-400 mt-1">Comece cadastrando dados nos módulos de Clínica ou Construção</p>
+              <Activity className="mx-auto text-[var(--text-muted)] mb-4" size={48} />
+              <h3 className="text-lg font-medium text-[var(--text-secondary)]">Sem dados disponíveis</h3>
+              <p className="text-sm text-[var(--text-muted)] mt-1">Comece cadastrando dados nos módulos de Clínica ou Construção</p>
             </div>
           )}
         </div>

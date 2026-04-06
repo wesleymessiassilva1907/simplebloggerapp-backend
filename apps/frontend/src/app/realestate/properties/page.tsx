@@ -61,34 +61,34 @@ export default function PropertiesPage() {
       <PageHeader title="Imóveis" subtitle="Gerencie os imóveis disponíveis"
         action={<button onClick={() => { setEditItem(null); setForm({ title: '', type: 'apartamento', status: 'disponível', price: '', area: '', bedrooms: '', bathrooms: '', parkingSpots: '', address: '', neighborhood: '', city: '' }); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Novo Imóvel</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={properties} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={properties} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Imóvel' : 'Novo Imóvel'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Título *</label><input value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="input-field" required /></div>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Título *</label><input value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="input-field" required /></div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Tipo *</label>
               <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="input-field">
                 <option value="apartamento">Apartamento</option><option value="casa">Casa</option><option value="cobertura">Cobertura</option><option value="mansão">Mansão</option><option value="terreno">Terreno</option><option value="comercial">Comercial</option>
               </select></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Status *</label>
               <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
                 <option value="disponível">Disponível</option><option value="reservado">Reservado</option><option value="vendido">Vendido</option><option value="alugado">Alugado</option>
               </select></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Preço (R$)</label><input type="number" step="0.01" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Área (m²)</label><input type="number" step="0.01" value={form.area} onChange={e => setForm({...form, area: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Preço (R$)</label><input type="number" step="0.01" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Área (m²)</label><input type="number" step="0.01" value={form.area} onChange={e => setForm({...form, area: e.target.value})} className="input-field" /></div>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Quartos</label><input type="number" value={form.bedrooms} onChange={e => setForm({...form, bedrooms: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Banheiros</label><input type="number" value={form.bathrooms} onChange={e => setForm({...form, bathrooms: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Vagas</label><input type="number" value={form.parkingSpots} onChange={e => setForm({...form, parkingSpots: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Quartos</label><input type="number" value={form.bedrooms} onChange={e => setForm({...form, bedrooms: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Banheiros</label><input type="number" value={form.bathrooms} onChange={e => setForm({...form, bathrooms: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Vagas</label><input type="number" value={form.parkingSpots} onChange={e => setForm({...form, parkingSpots: e.target.value})} className="input-field" /></div>
           </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Endereço</label><input value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="input-field" /></div>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Endereço</label><input value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="input-field" /></div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Bairro</label><input value={form.neighborhood} onChange={e => setForm({...form, neighborhood: e.target.value})} className="input-field" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label><input value={form.city} onChange={e => setForm({...form, city: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Bairro</label><input value={form.neighborhood} onChange={e => setForm({...form, neighborhood: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Cidade</label><input value={form.city} onChange={e => setForm({...form, city: e.target.value})} className="input-field" /></div>
           </div>
           <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancelar</button><button type="submit" className="btn-primary">{editItem ? 'Salvar' : 'Cadastrar'}</button></div>
         </form>

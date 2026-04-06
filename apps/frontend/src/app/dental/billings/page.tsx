@@ -86,28 +86,28 @@ export default function DentalBillingsPage() {
       <PageHeader title="Financeiro Odontologia" subtitle="Gerencie o financeiro da clínica odontológica"
         action={<button onClick={() => { setEditItem(null); setForm(emptyForm); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Nova Cobrança</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={billings} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={billings} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Cobrança' : 'Nova Cobrança'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Paciente *</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Paciente *</label>
             <select value={form.patientId} onChange={e => setForm({...form, patientId: e.target.value})} className="input-field" required>
               <option value="">Selecione...</option>
               {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Descrição</label>
             <input value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Valor (R$) *</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Valor (R$) *</label>
               <input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="input-field" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Status</label>
               <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
                 <option value="pendente">Pendente</option>
                 <option value="pago">Pago</option>
@@ -118,7 +118,7 @@ export default function DentalBillingsPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Forma de Pagamento</label>
               <select value={form.paymentMethod} onChange={e => setForm({...form, paymentMethod: e.target.value})} className="input-field">
                 <option value="">Selecione...</option>
                 <option value="PIX">PIX</option>
@@ -129,12 +129,12 @@ export default function DentalBillingsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Parcelas</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Parcelas</label>
               <input type="number" value={form.installments} onChange={e => setForm({...form, installments: e.target.value})} className="input-field" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Vencimento</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Vencimento</label>
             <input type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} className="input-field" />
           </div>
           <div className="flex justify-end gap-3 pt-4">

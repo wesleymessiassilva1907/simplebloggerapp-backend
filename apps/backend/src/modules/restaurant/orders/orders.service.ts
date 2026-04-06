@@ -4,13 +4,13 @@ import { CreateRestaurantOrderDto } from './dto/create-order.dto';
 import { UpdateRestaurantOrderDto } from './dto/update-order.dto';
 
 const STATUS_WORKFLOW: Record<string, string[]> = {
-  pending: ['confirmed', 'cancelled'],
-  confirmed: ['preparing', 'cancelled'],
-  preparing: ['ready', 'cancelled'],
-  ready: ['delivering', 'cancelled'],
+  pending: ['confirmed', 'canceled'],
+  confirmed: ['preparing', 'canceled'],
+  preparing: ['ready', 'canceled'],
+  ready: ['delivering', 'canceled'],
   delivering: ['delivered'],
   delivered: [],
-  cancelled: [],
+  canceled: [],
 };
 
 @Injectable()

@@ -71,27 +71,27 @@ export default function ClinicBillingPage() {
       <PageHeader title="Faturamento" subtitle="Gerencie as faturas da clínica"
         action={<button onClick={() => { setEditItem(null); setForm({ patientId: '', amount: '', status: 'pending', paymentMethod: '', dueDate: '' }); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Nova Fatura</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={billings} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={billings} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Fatura' : 'Nova Fatura'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Paciente *</label>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Paciente *</label>
             <select value={form.patientId} onChange={e => setForm({...form, patientId: e.target.value})} className="input-field" required>
               <option value="">Selecione...</option>{patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select></div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Valor (R$) *</label><input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="input-field" required /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Valor (R$) *</label><input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="input-field" required /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Status</label>
               <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
                 <option value="pending">Pendente</option><option value="paid">Pago</option><option value="overdue">Vencido</option><option value="canceled">Cancelado</option>
               </select></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Forma de Pagamento</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Forma de Pagamento</label>
               <select value={form.paymentMethod} onChange={e => setForm({...form, paymentMethod: e.target.value})} className="input-field">
                 <option value="">Selecione...</option><option value="pix">PIX</option><option value="credit_card">Cartão de Crédito</option><option value="debit_card">Cartão de Débito</option><option value="cash">Dinheiro</option><option value="boleto">Boleto</option>
               </select></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Vencimento</label><input type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Vencimento</label><input type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} className="input-field" /></div>
           </div>
           <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancelar</button><button type="submit" className="btn-primary">{editItem ? 'Salvar' : 'Cadastrar'}</button></div>
         </form>

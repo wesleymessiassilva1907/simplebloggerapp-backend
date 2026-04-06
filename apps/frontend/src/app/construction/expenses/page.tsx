@@ -62,25 +62,25 @@ export default function ExpensesPage() {
       <PageHeader title="Despesas" subtitle="Gerencie as despesas dos projetos"
         action={<button onClick={() => { setEditItem(null); setForm({ projectId: '', description: '', category: '', amount: '', expenseDate: '', supplier: '' }); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Nova Despesa</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={expenses} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={expenses} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Despesa' : 'Nova Despesa'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Projeto *</label>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Projeto *</label>
             <select value={form.projectId} onChange={e => setForm({...form, projectId: e.target.value})} className="input-field" required>
               <option value="">Selecione...</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Descrição *</label><input value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field" required /></div>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Descrição *</label><input value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field" required /></div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Categoria</label>
               <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="input-field">
                 <option value="">Selecione...</option><option value="material">Material</option><option value="mao_de_obra">Mão de Obra</option><option value="servico">Serviço</option><option value="equipamento">Equipamento</option><option value="outros">Outros</option>
               </select></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Valor (R$) *</label><input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="input-field" required /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Valor (R$) *</label><input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="input-field" required /></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Data *</label><input type="date" value={form.expenseDate} onChange={e => setForm({...form, expenseDate: e.target.value})} className="input-field" required /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Fornecedor</label><input value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} className="input-field" /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Data *</label><input type="date" value={form.expenseDate} onChange={e => setForm({...form, expenseDate: e.target.value})} className="input-field" required /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Fornecedor</label><input value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} className="input-field" /></div>
           </div>
           <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancelar</button><button type="submit" className="btn-primary">{editItem ? 'Salvar' : 'Cadastrar'}</button></div>
         </form>

@@ -72,28 +72,28 @@ export default function AppointmentsPage() {
       <PageHeader title="Agenda de Consultas" subtitle="Gerencie as consultas e agendamentos"
         action={<button onClick={() => { setEditItem(null); setForm({ patientId: '', doctorId: '', appointmentDate: '', status: 'scheduled', notes: '' }); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Nova Consulta</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={appointments} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={appointments} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Consulta' : 'Nova Consulta'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Paciente *</label>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Paciente *</label>
             <select value={form.patientId} onChange={e => setForm({...form, patientId: e.target.value})} className="input-field" required>
               <option value="">Selecione...</option>
               {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Médico *</label>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Médico *</label>
             <select value={form.doctorId} onChange={e => setForm({...form, doctorId: e.target.value})} className="input-field" required>
               <option value="">Selecione...</option>
               {doctors.map(d => <option key={d.id} value={d.id}>{d.name} - {d.specialty}</option>)}
             </select></div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Data/Hora *</label><input type="datetime-local" value={form.appointmentDate} onChange={e => setForm({...form, appointmentDate: e.target.value})} className="input-field" required /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Data/Hora *</label><input type="datetime-local" value={form.appointmentDate} onChange={e => setForm({...form, appointmentDate: e.target.value})} className="input-field" required /></div>
+            <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Status</label>
               <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="input-field">
                 <option value="scheduled">Agendado</option><option value="confirmed">Confirmado</option><option value="in_progress">Em Andamento</option><option value="completed">Concluído</option><option value="canceled">Cancelado</option>
               </select></div>
           </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Observações</label><textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field" rows={3} /></div>
+          <div><label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Observações</label><textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field" rows={3} /></div>
           <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancelar</button><button type="submit" className="btn-primary">{editItem ? 'Salvar' : 'Agendar'}</button></div>
         </form>
       </Modal>

@@ -73,37 +73,37 @@ export default function AestheticClientsPage() {
       <PageHeader title="Clientes Estética" subtitle="Gerencie os clientes da clínica estética"
         action={<button onClick={() => { setEditItem(null); setForm(emptyForm); setShowModal(true); }} className="btn-primary flex items-center gap-2"><Plus size={16} /> Novo Cliente</button>} />
       <div className="card">
-        {loading ? <p className="text-center py-8 text-gray-400">Carregando...</p> : <DataTable columns={columns} data={clients} onEdit={handleEdit} onDelete={handleDelete} />}
+        {loading ? <p className="text-center py-8 text-[var(--text-muted)]">Carregando...</p> : <DataTable columns={columns} data={clients} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editItem ? 'Editar Cliente' : 'Novo Cliente'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Nome *</label>
             <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="input-field" required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Telefone</label>
               <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="input-field" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">CPF</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">CPF</label>
               <input value={form.cpf} onChange={e => setForm({...form, cpf: e.target.value})} className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Data de Nascimento</label>
               <input type="date" value={form.birthDate} onChange={e => setForm({...form, birthDate: e.target.value})} className="input-field" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Gênero</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Gênero</label>
               <select value={form.gender} onChange={e => setForm({...form, gender: e.target.value})} className="input-field">
                 <option value="">Selecione...</option>
                 <option value="feminino">Feminino</option>
@@ -112,7 +112,7 @@ export default function AestheticClientsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Pele</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Tipo de Pele</label>
               <select value={form.skinType} onChange={e => setForm({...form, skinType: e.target.value})} className="input-field">
                 <option value="">Selecione...</option>
                 <option value="normal">Normal</option>
@@ -125,7 +125,7 @@ export default function AestheticClientsPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Origem</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Origem</label>
               <select value={form.source} onChange={e => setForm({...form, source: e.target.value})} className="input-field">
                 <option value="">Selecione...</option>
                 <option value="instagram">Instagram</option>
@@ -135,14 +135,14 @@ export default function AestheticClientsPage() {
               </select>
             </div>
             <div className="flex items-center pt-6">
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
                 <input type="checkbox" checked={form.photoConsent} onChange={e => setForm({...form, photoConsent: e.target.checked})} className="rounded" />
                 Consentimento para Fotos
               </label>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Observações</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Observações</label>
             <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="input-field" rows={3} />
           </div>
           <div className="flex justify-end gap-3 pt-4">
