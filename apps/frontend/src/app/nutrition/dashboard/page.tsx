@@ -3,8 +3,13 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/ui/StatsCard';
 import { api } from '@/lib/api';
-import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils';
-import { Users, Calendar, ClipboardList, Ruler, Apple, TrendingUp, UserPlus, Activity } from 'lucide-react';
+import { formatDate, formatDateTime } from '@/lib/utils';
+import { Users, Calendar, ClipboardList, Activity, UserPlus, CheckCircle, TrendingUp } from 'lucide-react';
+import { RevenueChart } from '@/components/charts/RevenueChart';
+import { PieChart as PieChartComponent } from '@/components/charts/PieChart';
+import { TrendIndicator } from '@/components/charts/TrendIndicator';
+import { AlertCard } from '@/components/charts/AlertCard';
+import { RankingList } from '@/components/charts/RankingList';
 
 export default function NutritionDashboardPage() {
   const [stats, setStats] = useState<any>(null);
@@ -25,7 +30,40 @@ export default function NutritionDashboardPage() {
     });
   }, []);
 
-  if (loading) return <DashboardLayout><div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500"></div></div></DashboardLayout>;
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const appointmentsByDay: { date: string; value: number }[] = (stats?.appointmentsByDay || []).map((d: any) => ({
+    date: d.date || '',
+    value: d.value || d.count || 0,
+  }));
+
+  const statusBreakdown: { name: string; value: number }[] = (stats?.statusBreakdown || []).map((s: any) => ({
+    name: s.name || s.status || '',
+    value: s.value || s.count || 0,
+  }));
+
+  const topPatients: { name: string; value: number; subtitle?: string; percent?: number }[] = (stats?.topPatients || []).map((p: any) => ({
+    name: p.name || '',
+    value: p.value || p.appointments || 0,
+    subtitle: p.subtitle || p.email || '',
+    percent: p.percent,
+  }));
+
+  const alerts: { type: string; message: string }[] = (stats?.alerts || []).map((a: any) => ({
+    type: a.type || 'warning',
+    message: a.message || '',
+  }));
+
+  const comparisonConsultas = stats?.comparisonVsLastMonth?.monthlyAppointments ?? null;
+  const comparisonConclusao = stats?.comparisonVsLastMonth?.planCompletionRate ?? null;
 
   return (
     <DashboardLayout>
@@ -35,14 +73,44 @@ export default function NutritionDashboardPage() {
           <p className="text-[var(--text-muted)] mt-1">Visao geral do consultorio de nutricao</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <StatsCard title="Total Pacientes" value={stats?.totalPatients || 0} icon={<Users size={24} />} color="brand" />
           <StatsCard title="Consultas Hoje" value={stats?.todayAppointments || 0} icon={<Calendar size={24} />} color="violet" />
           <StatsCard title="Planos Ativos" value={stats?.activePlans || 0} icon={<ClipboardList size={24} />} color="brand" />
-          <StatsCard title="Medidas no Mes" value={stats?.monthlyMeasurements || 0} icon={<Ruler size={24} />} color="amber" />
-          <StatsCard title="Consultas no Mes" value={stats?.monthlyAppointments || 0} icon={<Activity size={24} />} color="violet" />
+          <div>
+            <StatsCard title="Consultas no Mes" value={stats?.monthlyAppointments || 0} icon={<Activity size={24} />} color="amber" />
+            {comparisonConsultas !== null && <TrendIndicator value={comparisonConsultas} label="vs mes anterior" suffix="%" />}
+          </div>
+          <div>
+            <StatsCard title="Taxa Conclusao Planos" value={`${stats?.planCompletionRate || 0}%`} icon={<CheckCircle size={24} />} color="violet" />
+            {comparisonConclusao !== null && <TrendIndicator value={comparisonConclusao} label="vs mes anterior" suffix="%" />}
+          </div>
         </div>
 
+        {/* Alerts */}
+        {alerts.length > 0 && (
+          <AlertCard alerts={alerts} title="Alertas Nutricionais" />
+        )}
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="card">
+            <RevenueChart data={appointmentsByDay} title="Consultas por Dia (Ultimos 30 dias)" color="#6366f1" />
+          </div>
+          <div className="card">
+            <PieChartComponent data={statusBreakdown} title="Status dos Planos Alimentares" />
+          </div>
+        </div>
+
+        {/* Ranking */}
+        {topPatients.length > 0 && (
+          <div className="card">
+            <RankingList items={topPatients} title="Top Pacientes (Mais Consultas)" />
+          </div>
+        )}
+
+        {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Ultimas Consultas */}
           <div className="card">
@@ -85,7 +153,9 @@ export default function NutritionDashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-[var(--text-secondary)]">{patient.phone || 'Sem telefone'}</p>
-                    <span className={`text-xs ${patient.activePlan ? 'text-blue-500' : 'text-amber-500'}`}>{patient.activePlan ? 'Com plano' : 'Sem plano'}</span>
+                    <span className={`text-xs ${patient.activePlan ? 'text-blue-500' : 'text-amber-500'}`}>
+                      {patient.activePlan ? 'Com plano' : 'Sem plano'}
+                    </span>
                   </div>
                 </div>
               ))}
