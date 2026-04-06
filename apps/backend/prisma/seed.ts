@@ -348,11 +348,191 @@ async function main() {
   ]);
   console.log('✅ Barbershop products created');
 
+  // ==================== NEW VERTICALS ====================
+
+  // New roles
+  const newRoles = await Promise.all([
+    prisma.role.upsert({ where: { name: 'realestate_broker' }, update: {}, create: { name: 'realestate_broker', description: 'Real estate broker' } }),
+    prisma.role.upsert({ where: { name: 'realestate_agent' }, update: {}, create: { name: 'realestate_agent', description: 'Real estate agent' } }),
+    prisma.role.upsert({ where: { name: 'nutritionist' }, update: {}, create: { name: 'nutritionist', description: 'Nutritionist professional' } }),
+    prisma.role.upsert({ where: { name: 'legal_lawyer' }, update: {}, create: { name: 'legal_lawyer', description: 'Lawyer' } }),
+    prisma.role.upsert({ where: { name: 'legal_paralegal' }, update: {}, create: { name: 'legal_paralegal', description: 'Paralegal assistant' } }),
+    prisma.role.upsert({ where: { name: 'restaurant_manager' }, update: {}, create: { name: 'restaurant_manager', description: 'Restaurant manager' } }),
+    prisma.role.upsert({ where: { name: 'restaurant_kitchen' }, update: {}, create: { name: 'restaurant_kitchen', description: 'Kitchen staff' } }),
+    prisma.role.upsert({ where: { name: 'restaurant_delivery' }, update: {}, create: { name: 'restaurant_delivery', description: 'Delivery driver' } }),
+    prisma.role.upsert({ where: { name: 'aesthetic_professional' }, update: {}, create: { name: 'aesthetic_professional', description: 'Aesthetic professional' } }),
+    prisma.role.upsert({ where: { name: 'aesthetic_receptionist' }, update: {}, create: { name: 'aesthetic_receptionist', description: 'Aesthetic clinic receptionist' } }),
+    prisma.role.upsert({ where: { name: 'dental_dentist' }, update: {}, create: { name: 'dental_dentist', description: 'Dentist professional' } }),
+    prisma.role.upsert({ where: { name: 'dental_receptionist' }, update: {}, create: { name: 'dental_receptionist', description: 'Dental clinic receptionist' } }),
+  ]);
+  console.log('✅ New vertical roles created');
+
+  // --- Real Estate Tenant ---
+  const realestateTenant = await prisma.tenant.upsert({
+    where: { slug: 'imobiliaria-luxo' },
+    update: {},
+    create: { name: 'Imobiliária Luxo Premium', slug: 'imobiliaria-luxo', status: 'active', plan: 'professional' },
+  });
+  const realestateAdmin = await prisma.user.upsert({
+    where: { email_tenantId: { email: 'admin@imobiliaria.com', tenantId: realestateTenant.id } },
+    update: {},
+    create: { tenantId: realestateTenant.id, name: 'Roberto Campos', email: 'admin@imobiliaria.com', passwordHash, status: 'active' },
+  });
+  await prisma.userRole.upsert({ where: { userId_roleId: { userId: realestateAdmin.id, roleId: tenantAdminRole.id } }, update: {}, create: { userId: realestateAdmin.id, roleId: tenantAdminRole.id } });
+
+  await prisma.realEstateProperty.createMany({ data: [
+    { tenantId: realestateTenant.id, title: 'Penthouse Jardins', type: 'penthouse', status: 'available', price: 8500000, area: 450, bedrooms: 4, bathrooms: 6, parkingSpots: 4, neighborhood: 'Jardins', city: 'São Paulo', state: 'SP', condominium: 5500 },
+    { tenantId: realestateTenant.id, title: 'Mansão Alphaville', type: 'mansion', status: 'available', price: 12000000, area: 800, bedrooms: 6, bathrooms: 8, parkingSpots: 6, neighborhood: 'Alphaville', city: 'Barueri', state: 'SP' },
+    { tenantId: realestateTenant.id, title: 'Apartamento Vila Nova', type: 'apartment', status: 'reserved', price: 3200000, area: 180, bedrooms: 3, bathrooms: 4, parkingSpots: 3, neighborhood: 'Vila Nova Conceição', city: 'São Paulo', state: 'SP', condominium: 2800 },
+  ]});
+  await prisma.realEstateClient.createMany({ data: [
+    { tenantId: realestateTenant.id, name: 'Eduardo Monteiro', email: 'eduardo@invest.com', phone: '(11) 99999-0001', type: 'investor', budget: 15000000, source: 'referral' },
+    { tenantId: realestateTenant.id, name: 'Patricia Lemos', email: 'patricia@email.com', phone: '(11) 99999-0002', type: 'buyer', budget: 5000000, source: 'instagram' },
+  ]});
+  console.log('✅ Real Estate data created');
+
+  // --- Nutrition Tenant ---
+  const nutritionTenant = await prisma.tenant.upsert({
+    where: { slug: 'nutri-vida' },
+    update: {},
+    create: { name: 'Nutri Vida Consultório', slug: 'nutri-vida', status: 'active', plan: 'starter' },
+  });
+  const nutritionAdmin = await prisma.user.upsert({
+    where: { email_tenantId: { email: 'admin@nutrivida.com', tenantId: nutritionTenant.id } },
+    update: {},
+    create: { tenantId: nutritionTenant.id, name: 'Dra. Camila Nutrição', email: 'admin@nutrivida.com', passwordHash, status: 'active' },
+  });
+  await prisma.userRole.upsert({ where: { userId_roleId: { userId: nutritionAdmin.id, roleId: tenantAdminRole.id } }, update: {}, create: { userId: nutritionAdmin.id, roleId: tenantAdminRole.id } });
+
+  const nutPatients = await Promise.all([
+    prisma.nutritionPatient.create({ data: { tenantId: nutritionTenant.id, name: 'Ana Carolina', email: 'ana@email.com', phone: '(11) 97777-1111', gender: 'female', height: 165, currentWeight: 72, targetWeight: 62, objective: 'weight_loss' } }),
+    prisma.nutritionPatient.create({ data: { tenantId: nutritionTenant.id, name: 'Marcos Vieira', email: 'marcos@email.com', phone: '(11) 97777-2222', gender: 'male', height: 178, currentWeight: 85, targetWeight: 80, objective: 'muscle_gain' } }),
+  ]);
+  console.log('✅ Nutrition data created');
+
+  // --- Legal Tenant ---
+  const legalTenant = await prisma.tenant.upsert({
+    where: { slug: 'advocacia-silva' },
+    update: {},
+    create: { name: 'Silva & Associados Advocacia', slug: 'advocacia-silva', status: 'active', plan: 'professional' },
+  });
+  const legalAdmin = await prisma.user.upsert({
+    where: { email_tenantId: { email: 'admin@silvaadv.com', tenantId: legalTenant.id } },
+    update: {},
+    create: { tenantId: legalTenant.id, name: 'Dr. Ricardo Silva', email: 'admin@silvaadv.com', passwordHash, status: 'active' },
+  });
+  await prisma.userRole.upsert({ where: { userId_roleId: { userId: legalAdmin.id, roleId: tenantAdminRole.id } }, update: {}, create: { userId: legalAdmin.id, roleId: tenantAdminRole.id } });
+
+  const legalClients = await Promise.all([
+    prisma.legalClient.create({ data: { tenantId: legalTenant.id, name: 'Empresa ABC Ltda', email: 'juridico@abc.com', phone: '(11) 3333-1111', cpfCnpj: '12.345.678/0001-00', type: 'company' } }),
+    prisma.legalClient.create({ data: { tenantId: legalTenant.id, name: 'Maria Oliveira', email: 'maria.o@email.com', phone: '(11) 95555-1111', cpfCnpj: '123.456.789-00', type: 'individual' } }),
+  ]);
+  await prisma.legalCase.createMany({ data: [
+    { tenantId: legalTenant.id, clientId: legalClients[0].id, caseNumber: '0001234-56.2025.8.26.0100', title: 'Ação Trabalhista - Funcionário X', type: 'labor', court: '1ª Vara do Trabalho', status: 'active', priority: 'high', value: 150000 },
+    { tenantId: legalTenant.id, clientId: legalClients[1].id, caseNumber: '0005678-90.2025.8.26.0100', title: 'Divórcio Consensual', type: 'family', court: '2ª Vara de Família', status: 'active', priority: 'medium', value: 50000 },
+  ]});
+  console.log('✅ Legal data created');
+
+  // --- Restaurant Tenant ---
+  const restaurantTenant = await prisma.tenant.upsert({
+    where: { slug: 'dark-kitchen-sabor' },
+    update: {},
+    create: { name: 'Dark Kitchen Sabor', slug: 'dark-kitchen-sabor', status: 'active', plan: 'professional' },
+  });
+  const restaurantAdmin = await prisma.user.upsert({
+    where: { email_tenantId: { email: 'admin@sabor.com', tenantId: restaurantTenant.id } },
+    update: {},
+    create: { tenantId: restaurantTenant.id, name: 'Chef André Lima', email: 'admin@sabor.com', passwordHash, status: 'active' },
+  });
+  await prisma.userRole.upsert({ where: { userId_roleId: { userId: restaurantAdmin.id, roleId: tenantAdminRole.id } }, update: {}, create: { userId: restaurantAdmin.id, roleId: tenantAdminRole.id } });
+
+  const categories = await Promise.all([
+    prisma.restaurantCategory.create({ data: { tenantId: restaurantTenant.id, name: 'Hambúrgueres', sortOrder: 1 } }),
+    prisma.restaurantCategory.create({ data: { tenantId: restaurantTenant.id, name: 'Pizzas', sortOrder: 2 } }),
+    prisma.restaurantCategory.create({ data: { tenantId: restaurantTenant.id, name: 'Bebidas', sortOrder: 3 } }),
+  ]);
+  await prisma.restaurantMenuItem.createMany({ data: [
+    { tenantId: restaurantTenant.id, categoryId: categories[0].id, name: 'Smash Burger Clássico', price: 32, prepTime: 15, calories: 650 },
+    { tenantId: restaurantTenant.id, categoryId: categories[0].id, name: 'Smash Burger Bacon', price: 38, prepTime: 18, calories: 800, isPromotion: true, promotionPrice: 32 },
+    { tenantId: restaurantTenant.id, categoryId: categories[1].id, name: 'Pizza Margherita', price: 45, prepTime: 25, calories: 900 },
+    { tenantId: restaurantTenant.id, categoryId: categories[2].id, name: 'Refrigerante Lata', price: 8, prepTime: 1 },
+  ]});
+  await prisma.restaurantDriver.createMany({ data: [
+    { tenantId: restaurantTenant.id, name: 'Diego Motoboy', phone: '(11) 92222-1111', vehicle: 'moto', licensePlate: 'ABC-1234', isAvailable: true, status: 'online' },
+    { tenantId: restaurantTenant.id, name: 'Felipe Bike', phone: '(11) 92222-2222', vehicle: 'bicycle', isAvailable: true, status: 'online' },
+  ]});
+  console.log('✅ Restaurant data created');
+
+  // --- Aesthetic Clinic Tenant ---
+  const aestheticTenant = await prisma.tenant.upsert({
+    where: { slug: 'estetica-belle' },
+    update: {},
+    create: { name: 'Belle Estética Avançada', slug: 'estetica-belle', status: 'active', plan: 'professional' },
+  });
+  const aestheticAdmin = await prisma.user.upsert({
+    where: { email_tenantId: { email: 'admin@belle.com', tenantId: aestheticTenant.id } },
+    update: {},
+    create: { tenantId: aestheticTenant.id, name: 'Dra. Juliana Estética', email: 'admin@belle.com', passwordHash, status: 'active' },
+  });
+  await prisma.userRole.upsert({ where: { userId_roleId: { userId: aestheticAdmin.id, roleId: tenantAdminRole.id } }, update: {}, create: { userId: aestheticAdmin.id, roleId: tenantAdminRole.id } });
+
+  await prisma.aestheticProcedure.createMany({ data: [
+    { tenantId: aestheticTenant.id, name: 'Botox', category: 'injectable', duration: 30, price: 1200, sessionsNeeded: 1, aftercare: 'Evitar exercício por 24h' },
+    { tenantId: aestheticTenant.id, name: 'Peeling Químico', category: 'peeling', duration: 45, price: 350, sessionsNeeded: 4, interval: 15 },
+    { tenantId: aestheticTenant.id, name: 'Depilação a Laser', category: 'depilation', duration: 60, price: 280, sessionsNeeded: 8, interval: 30 },
+    { tenantId: aestheticTenant.id, name: 'Limpeza de Pele', category: 'facial', duration: 60, price: 180, sessionsNeeded: 1 },
+    { tenantId: aestheticTenant.id, name: 'Preenchimento Labial', category: 'injectable', duration: 40, price: 2500, sessionsNeeded: 1 },
+  ]});
+  await prisma.aestheticClient.createMany({ data: [
+    { tenantId: aestheticTenant.id, name: 'Carolina Mendes', email: 'carolina@email.com', phone: '(11) 96666-1111', skinType: 'combination', source: 'instagram', photoConsent: true },
+    { tenantId: aestheticTenant.id, name: 'Fernanda Lopes', email: 'fernanda@email.com', phone: '(11) 96666-2222', skinType: 'oily', source: 'referral', photoConsent: true },
+    { tenantId: aestheticTenant.id, name: 'Isabela Costa', email: 'isabela@email.com', phone: '(11) 96666-3333', skinType: 'sensitive', source: 'google' },
+  ]});
+  console.log('✅ Aesthetic Clinic data created');
+
+  // --- Dental Tenant ---
+  const dentalTenant = await prisma.tenant.upsert({
+    where: { slug: 'odonto-sorriso' },
+    update: {},
+    create: { name: 'Odonto Sorriso', slug: 'odonto-sorriso', status: 'active', plan: 'professional' },
+  });
+  const dentalAdmin = await prisma.user.upsert({
+    where: { email_tenantId: { email: 'admin@odonto.com', tenantId: dentalTenant.id } },
+    update: {},
+    create: { tenantId: dentalTenant.id, name: 'Dr. Felipe Dentista', email: 'admin@odonto.com', passwordHash, status: 'active' },
+  });
+  await prisma.userRole.upsert({ where: { userId_roleId: { userId: dentalAdmin.id, roleId: tenantAdminRole.id } }, update: {}, create: { userId: dentalAdmin.id, roleId: tenantAdminRole.id } });
+
+  await prisma.dentalDentist.createMany({ data: [
+    { tenantId: dentalTenant.id, name: 'Dr. Felipe Souza', email: 'felipe@odonto.com', phone: '(11) 94444-1111', cro: 'CRO/SP 12345', specialty: 'general' },
+    { tenantId: dentalTenant.id, name: 'Dra. Beatriz Lima', email: 'beatriz@odonto.com', phone: '(11) 94444-2222', cro: 'CRO/SP 67890', specialty: 'orthodontics' },
+  ]});
+  await prisma.dentalTreatment.createMany({ data: [
+    { tenantId: dentalTenant.id, name: 'Limpeza Dental', category: 'preventive', duration: 45, price: 180 },
+    { tenantId: dentalTenant.id, name: 'Restauração Resina', category: 'restorative', duration: 60, price: 250 },
+    { tenantId: dentalTenant.id, name: 'Canal', category: 'endodontic', duration: 90, price: 800 },
+    { tenantId: dentalTenant.id, name: 'Clareamento', category: 'cosmetic', duration: 60, price: 1200, toothRelated: false },
+    { tenantId: dentalTenant.id, name: 'Extração', category: 'surgical', duration: 45, price: 350 },
+    { tenantId: dentalTenant.id, name: 'Aparelho Ortodôntico', category: 'orthodontic', duration: 30, price: 3500, toothRelated: false },
+  ]});
+  await prisma.dentalPatient.createMany({ data: [
+    { tenantId: dentalTenant.id, name: 'Ricardo Almeida', email: 'ricardo@email.com', phone: '(11) 95555-1111', cpf: '111.222.333-44', birthDate: new Date('1988-05-20') },
+    { tenantId: dentalTenant.id, name: 'Juliana Ferreira', email: 'juliana@email.com', phone: '(11) 95555-2222', cpf: '555.666.777-88', birthDate: new Date('1995-10-15') },
+    { tenantId: dentalTenant.id, name: 'Pedro Henrique', email: 'pedro.h@email.com', phone: '(11) 95555-3333', birthDate: new Date('2010-03-08') },
+  ]});
+  console.log('✅ Dental data created');
+
   // Subscription plans
   await Promise.all([
     prisma.subscriptionPlan.create({ data: { tenantId: clinicTenant.id, planName: 'professional', price: 799, status: 'active' } }),
     prisma.subscriptionPlan.create({ data: { tenantId: constructionTenant.id, planName: 'starter', price: 500, status: 'active' } }),
     prisma.subscriptionPlan.create({ data: { tenantId: barbershopTenant.id, planName: 'professional', price: 799, status: 'active' } }),
+    prisma.subscriptionPlan.create({ data: { tenantId: realestateTenant.id, planName: 'professional', price: 1499, status: 'active' } }),
+    prisma.subscriptionPlan.create({ data: { tenantId: nutritionTenant.id, planName: 'starter', price: 299, status: 'active' } }),
+    prisma.subscriptionPlan.create({ data: { tenantId: legalTenant.id, planName: 'professional', price: 799, status: 'active' } }),
+    prisma.subscriptionPlan.create({ data: { tenantId: restaurantTenant.id, planName: 'professional', price: 599, status: 'active' } }),
+    prisma.subscriptionPlan.create({ data: { tenantId: aestheticTenant.id, planName: 'professional', price: 799, status: 'active' } }),
+    prisma.subscriptionPlan.create({ data: { tenantId: dentalTenant.id, planName: 'professional', price: 799, status: 'active' } }),
   ]);
   console.log('✅ Subscription plans created');
 
@@ -360,15 +540,21 @@ async function main() {
   console.log('🎉 Seed completed successfully!');
   console.log('');
   console.log('📧 Login credentials (password: Admin@123):');
-  console.log('   Super Admin:        admin@nexushub.com');
-  console.log('   Clinic Admin:       admin@clinica.com');
-  console.log('   Doctor:             ana@clinica.com');
-  console.log('   Receptionist:       maria@clinica.com');
-  console.log('   Construction Admin: admin@construtora.com');
-  console.log('   Manager:            carlos@construtora.com');
-  console.log('   Worker:             jose@construtora.com');
-  console.log('   Barbershop Admin:   admin@barbearia.com');
-  console.log('   Barber:             pedro@barbearia.com');
+  console.log('   Super Admin:         admin@nexushub.com');
+  console.log('   Clinic Admin:        admin@clinica.com');
+  console.log('   Doctor:              ana@clinica.com');
+  console.log('   Receptionist:        maria@clinica.com');
+  console.log('   Construction Admin:  admin@construtora.com');
+  console.log('   Manager:             carlos@construtora.com');
+  console.log('   Worker:              jose@construtora.com');
+  console.log('   Barbershop Admin:    admin@barbearia.com');
+  console.log('   Barber:              pedro@barbearia.com');
+  console.log('   Real Estate Admin:   admin@imobiliaria.com');
+  console.log('   Nutrition Admin:     admin@nutrivida.com');
+  console.log('   Legal Admin:         admin@silvaadv.com');
+  console.log('   Restaurant Admin:    admin@sabor.com');
+  console.log('   Aesthetic Admin:     admin@belle.com');
+  console.log('   Dental Admin:        admin@odonto.com');
 }
 
 main()

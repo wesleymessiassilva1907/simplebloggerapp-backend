@@ -39,6 +39,42 @@ model Tenant {
   barbershopBookings   BarbershopBooking[]
   barbershopProducts   BarbershopProduct[]
   barbershopOrders     BarbershopOrder[]
+  // Real Estate
+  realEstateProperties  RealEstateProperty[]
+  realEstateClients     RealEstateClient[]
+  realEstateVisits      RealEstateVisit[]
+  realEstateDeals       RealEstateDeal[]
+  // Nutritionist
+  nutritionPatients     NutritionPatient[]
+  nutritionPlans        NutritionPlan[]
+  nutritionMeals        NutritionMeal[]
+  nutritionAppointments NutritionAppointment[]
+  nutritionMeasurements NutritionMeasurement[]
+  // Legal
+  legalClients          LegalClient[]
+  legalCases            LegalCase[]
+  legalDocuments        LegalDocument[]
+  legalTasks            LegalTask[]
+  legalBillings         LegalBilling[]
+  // Restaurant
+  restaurantMenuItems   RestaurantMenuItem[]
+  restaurantOrders      RestaurantOrder[]
+  restaurantOrderItems  RestaurantOrderItem[]
+  restaurantDrivers     RestaurantDriver[]
+  restaurantCategories  RestaurantCategory[]
+  // Aesthetic Clinic
+  aestheticClients      AestheticClient[]
+  aestheticProcedures   AestheticProcedure[]
+  aestheticAppointments AestheticAppointment[]
+  aestheticPackages     AestheticPackage[]
+  aestheticBillings     AestheticBilling[]
+  // Dental
+  dentalPatients        DentalPatient[]
+  dentalDentists        DentalDentist[]
+  dentalAppointments    DentalAppointment[]
+  dentalTreatments      DentalTreatment[]
+  dentalTreatmentPlans  DentalTreatmentPlan[]
+  dentalBillings        DentalBilling[]
 
   @@map("tenants")
 }
@@ -521,4 +557,762 @@ model BarbershopOrderItem {
   product BarbershopProduct? @relation(fields: [productId], references: [id])
 
   @@map("barbershop_order_items")
+}
+
+// ==================== REAL ESTATE (LUXURY CRM) ====================
+
+model RealEstateProperty {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  title         String
+  description   String?
+  type          String    // apartment, house, penthouse, mansion, land, commercial
+  status        String    @default("available") // available, reserved, sold, rented
+  price         Decimal
+  area          Decimal?  // square meters
+  bedrooms      Int?
+  bathrooms     Int?
+  parkingSpots  Int?      @map("parking_spots")
+  address       String?
+  neighborhood  String?
+  city          String?
+  state         String?
+  zipCode       String?   @map("zip_code")
+  latitude      Decimal?
+  longitude     Decimal?
+  features      Json?     // pool, gym, sauna, etc.
+  images        Json?     // array of image URLs
+  videoUrl      String?   @map("video_url")
+  virtualTourUrl String?  @map("virtual_tour_url")
+  condominium   Decimal?  // monthly condo fee
+  iptu          Decimal?  // yearly property tax
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id])
+  visits RealEstateVisit[]
+  deals  RealEstateDeal[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("real_estate_properties")
+}
+
+model RealEstateClient {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  name          String
+  email         String?
+  phone         String?
+  cpf           String?
+  type          String   @default("buyer") // buyer, seller, investor, renter
+  budget        Decimal?
+  preferences   Json?    // desired features, locations, etc.
+  source        String?  // referral, website, instagram, event
+  status        String   @default("active") // active, inactive, closed
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id])
+  visits RealEstateVisit[]
+  deals  RealEstateDeal[]
+
+  @@index([tenantId])
+  @@map("real_estate_clients")
+}
+
+model RealEstateVisit {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  propertyId  String   @map("property_id")
+  clientId    String   @map("client_id")
+  visitDate   DateTime @map("visit_date")
+  status      String   @default("scheduled") // scheduled, completed, canceled, no_show
+  feedback    String?
+  rating      Int?     // 1-5
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant             @relation(fields: [tenantId], references: [id])
+  property RealEstateProperty @relation(fields: [propertyId], references: [id])
+  client   RealEstateClient   @relation(fields: [clientId], references: [id])
+
+  @@index([tenantId])
+  @@map("real_estate_visits")
+}
+
+model RealEstateDeal {
+  id              String    @id @default(uuid())
+  tenantId        String    @map("tenant_id")
+  propertyId      String    @map("property_id")
+  clientId        String    @map("client_id")
+  type            String    // sale, rent
+  value           Decimal
+  commission      Decimal?
+  commissionPercent Decimal? @map("commission_percent")
+  status          String    @default("negotiation") // negotiation, proposal, contract, closed, canceled
+  contractDate    DateTime? @map("contract_date")
+  closingDate     DateTime? @map("closing_date")
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  tenant   Tenant             @relation(fields: [tenantId], references: [id])
+  property RealEstateProperty @relation(fields: [propertyId], references: [id])
+  client   RealEstateClient   @relation(fields: [clientId], references: [id])
+
+  @@index([tenantId])
+  @@map("real_estate_deals")
+}
+
+// ==================== NUTRITIONIST ====================
+
+model NutritionPatient {
+  id              String    @id @default(uuid())
+  tenantId        String    @map("tenant_id")
+  name            String
+  email           String?
+  phone           String?
+  cpf             String?
+  birthDate       DateTime? @map("birth_date")
+  gender          String?   // male, female, other
+  height          Decimal?  // cm
+  currentWeight   Decimal?  @map("current_weight") // kg
+  targetWeight    Decimal?  @map("target_weight") // kg
+  allergies       Json?     // array of allergies
+  restrictions    Json?     // dietary restrictions (vegan, lactose-free, etc.)
+  objective       String?   // weight_loss, muscle_gain, health, sports
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id])
+  plans        NutritionPlan[]
+  appointments NutritionAppointment[]
+  measurements NutritionMeasurement[]
+
+  @@index([tenantId])
+  @@map("nutrition_patients")
+}
+
+model NutritionPlan {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  patientId     String    @map("patient_id")
+  name          String
+  objective     String?
+  dailyCalories Int?      @map("daily_calories")
+  dailyProtein  Decimal?  @map("daily_protein") // grams
+  dailyCarbs    Decimal?  @map("daily_carbs")
+  dailyFat      Decimal?  @map("daily_fat")
+  startDate     DateTime? @map("start_date")
+  endDate       DateTime? @map("end_date")
+  status        String    @default("active") // active, completed, paused
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant  Tenant            @relation(fields: [tenantId], references: [id])
+  patient NutritionPatient  @relation(fields: [patientId], references: [id])
+  meals   NutritionMeal[]
+
+  @@index([tenantId])
+  @@map("nutrition_plans")
+}
+
+model NutritionMeal {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  planId    String   @map("plan_id")
+  name      String   // breakfast, morning_snack, lunch, afternoon_snack, dinner, supper
+  time      String?  // suggested time "07:00"
+  foods     Json     // array of { name, quantity, unit, calories, protein, carbs, fat }
+  notes     String?
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant        @relation(fields: [tenantId], references: [id])
+  plan   NutritionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("nutrition_meals")
+}
+
+model NutritionAppointment {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  patientId       String   @map("patient_id")
+  appointmentDate DateTime @map("appointment_date")
+  type            String   @default("consultation") // consultation, follow_up, evaluation
+  status          String   @default("scheduled") // scheduled, confirmed, completed, canceled
+  weight          Decimal? // measured weight at appointment
+  notes           String?
+  recommendations String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant           @relation(fields: [tenantId], references: [id])
+  patient NutritionPatient @relation(fields: [patientId], references: [id])
+
+  @@index([tenantId])
+  @@map("nutrition_appointments")
+}
+
+model NutritionMeasurement {
+  id           String   @id @default(uuid())
+  tenantId     String   @map("tenant_id")
+  patientId    String   @map("patient_id")
+  date         DateTime
+  weight       Decimal  // kg
+  bodyFat      Decimal? @map("body_fat") // percentage
+  muscleMass   Decimal? @map("muscle_mass") // kg
+  bmi          Decimal? // calculated
+  waist        Decimal? // cm
+  hip          Decimal? // cm
+  arm          Decimal? // cm
+  chest        Decimal? // cm
+  thigh        Decimal? // cm
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant           @relation(fields: [tenantId], references: [id])
+  patient NutritionPatient @relation(fields: [patientId], references: [id])
+
+  @@index([tenantId])
+  @@map("nutrition_measurements")
+}
+
+// ==================== LEGAL ====================
+
+model LegalClient {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  email     String?
+  phone     String?
+  cpfCnpj   String?  @map("cpf_cnpj")
+  type      String   @default("individual") // individual, company
+  address   String?
+  notes     String?
+  status    String   @default("active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant        @relation(fields: [tenantId], references: [id])
+  cases    LegalCase[]
+  billings LegalBilling[]
+
+  @@index([tenantId])
+  @@map("legal_clients")
+}
+
+model LegalCase {
+  id             String    @id @default(uuid())
+  tenantId       String    @map("tenant_id")
+  clientId       String    @map("client_id")
+  caseNumber     String?   @map("case_number")
+  title          String
+  description    String?
+  type           String?   // civil, criminal, labor, tax, family, corporate
+  court          String?   // tribunal/vara
+  judge          String?
+  status         String    @default("active") // active, archived, won, lost, settled
+  priority       String    @default("medium") // low, medium, high, urgent
+  value          Decimal?  // case value
+  filingDate     DateTime? @map("filing_date")
+  nextHearingDate DateTime? @map("next_hearing_date")
+  notes          String?
+  aiSummary      String?   @map("ai_summary")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  tenant    Tenant         @relation(fields: [tenantId], references: [id])
+  client    LegalClient    @relation(fields: [clientId], references: [id])
+  documents LegalDocument[]
+  tasks     LegalTask[]
+  billings  LegalBilling[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("legal_cases")
+}
+
+model LegalDocument {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  caseId      String   @map("case_id")
+  title       String
+  type        String?  // petition, contract, power_of_attorney, ruling, brief, evidence
+  content     String?  // full text or summary
+  filePath    String?  @map("file_path")
+  fileSize    Int?     @map("file_size")
+  version     Int      @default(1)
+  status      String   @default("draft") // draft, review, final, filed
+  aiAnalysis  String?  @map("ai_analysis")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant    @relation(fields: [tenantId], references: [id])
+  case   LegalCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("legal_documents")
+}
+
+model LegalTask {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  caseId      String    @map("case_id")
+  title       String
+  description String?
+  type        String?   // hearing, deadline, filing, meeting, research
+  dueDate     DateTime? @map("due_date")
+  status      String    @default("pending") // pending, in_progress, completed, overdue
+  priority    String    @default("medium")
+  assignedTo  String?   @map("assigned_to")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant    @relation(fields: [tenantId], references: [id])
+  case   LegalCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("legal_tasks")
+}
+
+model LegalBilling {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  clientId      String    @map("client_id")
+  caseId        String?   @map("case_id")
+  description   String
+  type          String    @default("fee") // fee, expense, court_cost, consultation
+  amount        Decimal
+  hoursWorked   Decimal?  @map("hours_worked")
+  hourlyRate    Decimal?  @map("hourly_rate")
+  status        String    @default("pending") // pending, invoiced, paid, canceled
+  dueDate       DateTime? @map("due_date")
+  paidAt        DateTime? @map("paid_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant      @relation(fields: [tenantId], references: [id])
+  client LegalClient @relation(fields: [clientId], references: [id])
+  case   LegalCase?  @relation(fields: [caseId], references: [id])
+
+  @@index([tenantId])
+  @@map("legal_billings")
+}
+
+// ==================== RESTAURANT (DARK KITCHEN / DELIVERY) ====================
+
+model RestaurantCategory {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  description String?
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant             @relation(fields: [tenantId], references: [id])
+  items  RestaurantMenuItem[]
+
+  @@index([tenantId])
+  @@map("restaurant_categories")
+}
+
+model RestaurantMenuItem {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  categoryId  String?  @map("category_id")
+  name        String
+  description String?
+  price       Decimal
+  imageUrl    String?  @map("image_url")
+  prepTime    Int?     @map("prep_time") // minutes
+  isAvailable Boolean  @default(true) @map("is_available")
+  isPromotion Boolean  @default(false) @map("is_promotion")
+  promotionPrice Decimal? @map("promotion_price")
+  ingredients Json?
+  allergens   Json?    // gluten, lactose, nuts, etc.
+  calories    Int?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant              @relation(fields: [tenantId], references: [id])
+  category RestaurantCategory? @relation(fields: [categoryId], references: [id])
+  orderItems RestaurantOrderItem[]
+
+  @@index([tenantId])
+  @@map("restaurant_menu_items")
+}
+
+model RestaurantOrder {
+  id              String    @id @default(uuid())
+  tenantId        String    @map("tenant_id")
+  orderNumber     String    @map("order_number")
+  customerName    String    @map("customer_name")
+  customerPhone   String?   @map("customer_phone")
+  customerAddress String?   @map("customer_address")
+  channel         String    @default("delivery") // delivery, takeout, dine_in, ifood, rappi, ubereats
+  status          String    @default("pending") // pending, confirmed, preparing, ready, delivering, delivered, canceled
+  subtotal        Decimal
+  deliveryFee     Decimal?  @map("delivery_fee")
+  discount        Decimal?
+  total           Decimal
+  paymentMethod   String?   @map("payment_method") // pix, credit_card, debit_card, cash, online
+  paymentStatus   String    @default("pending") @map("payment_status") // pending, paid, refunded
+  driverId        String?   @map("driver_id")
+  notes           String?
+  estimatedTime   Int?      @map("estimated_time") // minutes
+  preparedAt      DateTime? @map("prepared_at")
+  deliveredAt     DateTime? @map("delivered_at")
+  canceledAt      DateTime? @map("canceled_at")
+  cancelReason    String?   @map("cancel_reason")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant               @relation(fields: [tenantId], references: [id])
+  driver RestaurantDriver?    @relation(fields: [driverId], references: [id])
+  items  RestaurantOrderItem[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("restaurant_orders")
+}
+
+model RestaurantOrderItem {
+  id         String  @id @default(uuid())
+  tenantId   String  @map("tenant_id")
+  orderId    String  @map("order_id")
+  menuItemId String? @map("menu_item_id")
+  name       String
+  quantity   Int     @default(1)
+  unitPrice  Decimal @map("unit_price")
+  total      Decimal
+  notes      String? // customizations
+
+  tenant   Tenant              @relation(fields: [tenantId], references: [id])
+  order    RestaurantOrder     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem RestaurantMenuItem? @relation(fields: [menuItemId], references: [id])
+
+  @@index([tenantId])
+  @@map("restaurant_order_items")
+}
+
+model RestaurantDriver {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  phone     String?
+  vehicle   String?  // moto, car, bicycle
+  licensePlate String? @map("license_plate")
+  isAvailable Boolean @default(true) @map("is_available")
+  status    String   @default("offline") // online, offline, delivering
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant            @relation(fields: [tenantId], references: [id])
+  orders RestaurantOrder[]
+
+  @@index([tenantId])
+  @@map("restaurant_drivers")
+}
+
+// ==================== AESTHETIC CLINIC ====================
+
+model AestheticClient {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  name          String
+  email         String?
+  phone         String?
+  cpf           String?
+  birthDate     DateTime? @map("birth_date")
+  gender        String?
+  skinType      String?   @map("skin_type") // normal, dry, oily, combination, sensitive
+  medicalHistory Json?    @map("medical_history") // allergies, conditions, medications
+  contraindications Json?
+  photoConsent  Boolean   @default(false) @map("photo_consent")
+  notes         String?
+  source        String?   // instagram, referral, google, walk_in
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id])
+  appointments AestheticAppointment[]
+  billings     AestheticBilling[]
+
+  @@index([tenantId])
+  @@map("aesthetic_clients")
+}
+
+model AestheticProcedure {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  name          String
+  description   String?
+  category      String?  // facial, body, laser, injectable, peeling, depilation
+  duration      Int?     // minutes
+  price         Decimal
+  costPerSession Decimal? @map("cost_per_session") // product cost
+  sessionsNeeded Int?    @map("sessions_needed")
+  interval      Int?     // days between sessions
+  contraindications Json?
+  aftercare     String?
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id])
+  appointments AestheticAppointment[]
+  packages     AestheticPackageProcedure[]
+
+  @@index([tenantId])
+  @@map("aesthetic_procedures")
+}
+
+model AestheticAppointment {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  clientId      String    @map("client_id")
+  procedureId   String    @map("procedure_id")
+  packageId     String?   @map("package_id")
+  appointmentDate DateTime @map("appointment_date")
+  sessionNumber Int?      @map("session_number")
+  status        String    @default("scheduled") // scheduled, confirmed, in_progress, completed, canceled
+  beforePhoto   String?   @map("before_photo")
+  afterPhoto    String?   @map("after_photo")
+  notes         String?
+  professional  String?   // who performed
+  productsUsed  Json?     @map("products_used")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant    Tenant              @relation(fields: [tenantId], references: [id])
+  client    AestheticClient     @relation(fields: [clientId], references: [id])
+  procedure AestheticProcedure  @relation(fields: [procedureId], references: [id])
+  package   AestheticPackage?   @relation(fields: [packageId], references: [id])
+
+  @@index([tenantId])
+  @@map("aesthetic_appointments")
+}
+
+model AestheticPackage {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  name          String
+  description   String?
+  totalPrice    Decimal  @map("total_price")
+  totalSessions Int      @map("total_sessions")
+  validityDays  Int?     @map("validity_days")
+  discount      Decimal? // percentage
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant       Tenant                     @relation(fields: [tenantId], references: [id])
+  procedures   AestheticPackageProcedure[]
+  appointments AestheticAppointment[]
+
+  @@index([tenantId])
+  @@map("aesthetic_packages")
+}
+
+model AestheticPackageProcedure {
+  id          String @id @default(uuid())
+  packageId   String @map("package_id")
+  procedureId String @map("procedure_id")
+  sessions    Int    @default(1)
+
+  package   AestheticPackage   @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  procedure AestheticProcedure @relation(fields: [procedureId], references: [id])
+
+  @@map("aesthetic_package_procedures")
+}
+
+model AestheticBilling {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  clientId      String    @map("client_id")
+  description   String
+  amount        Decimal
+  status        String    @default("pending") // pending, paid, overdue, canceled
+  paymentMethod String?   @map("payment_method")
+  installments  Int?      @default(1)
+  dueDate       DateTime? @map("due_date")
+  paidAt        DateTime? @map("paid_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant          @relation(fields: [tenantId], references: [id])
+  client AestheticClient @relation(fields: [clientId], references: [id])
+
+  @@index([tenantId])
+  @@map("aesthetic_billings")
+}
+
+// ==================== DENTAL ====================
+
+model DentalPatient {
+  id               String    @id @default(uuid())
+  tenantId         String    @map("tenant_id")
+  name             String
+  email            String?
+  phone            String?
+  cpf              String?
+  birthDate        DateTime? @map("birth_date")
+  gender           String?
+  address          String?
+  emergencyContact String?   @map("emergency_contact")
+  medicalHistory   Json?     @map("medical_history")
+  allergies        Json?
+  lastVisit        DateTime? @map("last_visit")
+  notes            String?
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  tenant         Tenant               @relation(fields: [tenantId], references: [id])
+  appointments   DentalAppointment[]
+  treatmentPlans DentalTreatmentPlan[]
+  billings       DentalBilling[]
+
+  @@index([tenantId])
+  @@map("dental_patients")
+}
+
+model DentalDentist {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  email       String?
+  phone       String?
+  cro         String?  // CRO registration
+  specialty   String?  // orthodontics, endodontics, implantology, periodontics, general
+  workDays    Json?    @map("work_days") // array of weekdays
+  workHours   Json?    @map("work_hours") // { start: "08:00", end: "18:00" }
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant       Tenant              @relation(fields: [tenantId], references: [id])
+  appointments DentalAppointment[]
+  treatmentPlans DentalTreatmentPlan[]
+
+  @@index([tenantId])
+  @@map("dental_dentists")
+}
+
+model DentalTreatment {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  name          String
+  description   String?
+  category      String?  // preventive, restorative, cosmetic, orthodontic, surgical, endodontic
+  duration      Int?     // minutes
+  price         Decimal
+  toothRelated  Boolean  @default(true) @map("tooth_related")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant     Tenant                      @relation(fields: [tenantId], references: [id])
+  planItems  DentalTreatmentPlanItem[]
+
+  @@index([tenantId])
+  @@map("dental_treatments")
+}
+
+model DentalAppointment {
+  id              String    @id @default(uuid())
+  tenantId        String    @map("tenant_id")
+  patientId       String    @map("patient_id")
+  dentistId       String    @map("dentist_id")
+  appointmentDate DateTime  @map("appointment_date")
+  duration        Int?      // minutes
+  type            String    @default("consultation") // consultation, treatment, follow_up, emergency, cleaning
+  status          String    @default("scheduled") // scheduled, confirmed, in_progress, completed, canceled, no_show
+  toothNumber     String?   @map("tooth_number") // ISO notation
+  notes           String?
+  clinicalNotes   String?   @map("clinical_notes")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id])
+  patient DentalPatient @relation(fields: [patientId], references: [id])
+  dentist DentalDentist @relation(fields: [dentistId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, dentistId, appointmentDate])
+  @@map("dental_appointments")
+}
+
+model DentalTreatmentPlan {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  patientId   String    @map("patient_id")
+  dentistId   String    @map("dentist_id")
+  name        String
+  description String?
+  status      String    @default("proposed") // proposed, approved, in_progress, completed, canceled
+  totalCost   Decimal?  @map("total_cost")
+  discount    Decimal?
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  notes       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  tenant  Tenant                  @relation(fields: [tenantId], references: [id])
+  patient DentalPatient           @relation(fields: [patientId], references: [id])
+  dentist DentalDentist           @relation(fields: [dentistId], references: [id])
+  items   DentalTreatmentPlanItem[]
+
+  @@index([tenantId])
+  @@map("dental_treatment_plans")
+}
+
+model DentalTreatmentPlanItem {
+  id            String    @id @default(uuid())
+  planId        String    @map("plan_id")
+  treatmentId   String    @map("treatment_id")
+  toothNumber   String?   @map("tooth_number")
+  status        String    @default("pending") // pending, in_progress, completed
+  price         Decimal
+  sessions      Int       @default(1)
+  completedAt   DateTime? @map("completed_at")
+  notes         String?
+
+  plan      DentalTreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  treatment DentalTreatment     @relation(fields: [treatmentId], references: [id])
+
+  @@map("dental_treatment_plan_items")
+}
+
+model DentalBilling {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  patientId     String    @map("patient_id")
+  description   String
+  amount        Decimal
+  status        String    @default("pending") // pending, paid, overdue, canceled
+  paymentMethod String?   @map("payment_method")
+  installments  Int?      @default(1)
+  dueDate       DateTime? @map("due_date")
+  paidAt        DateTime? @map("paid_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id])
+  patient DentalPatient @relation(fields: [patientId], references: [id])
+
+  @@index([tenantId])
+  @@map("dental_billings")
 }
