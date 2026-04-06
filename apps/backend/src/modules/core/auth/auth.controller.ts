@@ -4,6 +4,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
+import { ThrottleGuard } from '@/common/guards/throttle.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -11,12 +12,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @UseGuards(new ThrottleGuard(5, 60000))
   @ApiOperation({ summary: 'User login' })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
 
   @Post('register-initial-tenant-admin')
+  @UseGuards(new ThrottleGuard(5, 60000))
   @ApiOperation({ summary: 'Register a new tenant with admin user' })
   async registerTenantAdmin(@Body() dto: RegisterTenantDto) {
     return this.authService.registerInitialTenantAdmin(dto);

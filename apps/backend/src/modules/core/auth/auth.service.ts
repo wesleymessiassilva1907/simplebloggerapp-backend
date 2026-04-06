@@ -13,14 +13,34 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findFirst({
-      where: { email: dto.email, status: 'active' },
+    const whereClause: any = { email: dto.email, status: 'active' };
+
+    // If tenantSlug provided, scope to that tenant
+    if (dto.tenantSlug) {
+      const tenant = await this.prisma.tenant.findUnique({ where: { slug: dto.tenantSlug } });
+      if (!tenant) throw new UnauthorizedException('Tenant not found');
+      whereClause.tenantId = tenant.id;
+    }
+
+    const users = await this.prisma.user.findMany({
+      where: whereClause,
       include: { userRoles: { include: { role: true } }, tenant: true },
     });
 
-    if (!user) {
+    if (users.length === 0) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    if (users.length > 1 && !dto.tenantSlug) {
+      // Multiple users with same email across tenants - need tenant context
+      const tenants = users.map(u => ({ id: u.tenant.id, name: u.tenant.name, slug: u.tenant.slug }));
+      throw new UnauthorizedException({
+        message: 'Multiple accounts found. Please provide tenantSlug.',
+        tenants,
+      });
+    }
+
+    const user = users[0];
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
