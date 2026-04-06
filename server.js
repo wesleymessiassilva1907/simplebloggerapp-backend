@@ -4,40 +4,43 @@ import cors from "cors";
 import { dataBaseConnection } from "./config/database.js";
 import { indexRoutes } from "./routes/index.js";
 import customErrorHandler from "./middleware/customErrorHandler.js";
+import { apiRateLimiter } from "./middleware/rateLimiter.js";
 import path from "path";
 
-//Configuring the environmental variable
+// Configure environment variables
 dotenv.config();
 
-//Server Setup
+// Server Setup
 const app = express();
 const PORT = process.env.PORT || 5005;
 
-//Middlewares
+// Middlewares
 app.use(express.json());
 app.use(cors());
+app.use(apiRateLimiter);
 app.use(customErrorHandler);
 
-// Determine the root directory based on the current module's directory
+// Serve static files
 const __dirname = path.resolve();
-
-// Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, "public")));
 
-//Database Connection
+// Database Connection
 dataBaseConnection();
 
-//Test Route
+// Health Check
 app.get("/", async (req, res) => {
-  return res
-    .status(200)
-    .send("API of Aspire Kaleidoscope... A Simple Blogger App Backend");
+  return res.status(200).json({
+    name: "SaaS API",
+    version: "1.0.0",
+    description: "Multi-tenant Blogging Platform as a Service",
+    status: "running",
+  });
 });
 
-//Routes
+// Routes
 app.use("/api", indexRoutes);
 
-//Listening the Server
+// Start Server
 app.listen(PORT, () => {
-  console.log(`Server Started in localhost:${PORT}`);
+  console.log(`SaaS Server running on port ${PORT}`);
 });

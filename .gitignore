@@ -1,3 +1,6 @@
 /node_modules
 *.env
 package-lock.json
+/public/storyImages/*
+!public/storyImages/.gitkeep
+.DS_Store

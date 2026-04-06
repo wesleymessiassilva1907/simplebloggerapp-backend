@@ -1,9 +1,10 @@
 import { Story } from "../models/story.js";
+import { Usage } from "../models/usage.js";
+import { Subscription } from "../models/subscription.js";
 
 export const addStory = async (req, res) => {
   try {
-    // Validate that required fields (e.g., title and content) are present in the request body
-    const { title, summary, content, image } = req.body;
+    const { title, summary, content, image, status } = req.body;
 
     if (!title || !summary || !content) {
       return res.status(400).json({
@@ -11,19 +12,48 @@ export const addStory = async (req, res) => {
       });
     }
 
-    // Create a new Story instance with the request data
+    // Check story limit for tenant
+    if (req.tenant) {
+      const subscription = await Subscription.findOne({
+        tenant: req.tenant._id,
+      }).populate("plan");
+
+      if (subscription?.plan?.limits?.maxStories > 0) {
+        const storyCount = await Story.countDocuments({
+          tenant: req.tenant._id,
+        });
+        if (storyCount >= subscription.plan.limits.maxStories) {
+          return res.status(403).json({
+            error:
+              "Story limit reached for your plan. Please upgrade to create more stories.",
+          });
+        }
+      }
+    }
+
     const newStory = new Story({
       author: req.user._id,
+      tenant: req.tenant?._id,
       title,
       summary,
       content,
+      status: status || "draft",
       image:
         image ||
         "https://thersilentboy.com/wp-content/uploads/2022/09/Blogging.jpeg",
     });
 
-    // Save the new story to the database
     await newStory.save();
+
+    // Track usage
+    if (req.tenant) {
+      const today = new Date().toISOString().split("T")[0];
+      await Usage.findOneAndUpdate(
+        { tenant: req.tenant._id, date: today },
+        { $inc: { storiesCreated: 1 } },
+        { upsert: true }
+      );
+    }
 
     return res.status(201).json({
       message: "Story added successfully",
@@ -38,19 +68,39 @@ export const addStory = async (req, res) => {
 
 export const getAllStories = async (req, res) => {
   try {
-    // Fetch all stories from your database (assuming you have a "Story" model)
-    const stories = await Story.find();
+    const filter = {};
 
-    if (!stories) {
-      return res.status(404).json({
-        message: "No stories found",
-        success: false,
-      });
+    // Scope stories to tenant if present
+    if (req.tenant) {
+      filter.tenant = req.tenant._id;
     }
 
+    // Allow filtering by status
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const stories = await Story.find(filter)
+      .populate("author", "firstName lastName")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Story.countDocuments(filter);
+
     return res.status(200).json({
-      message: "All stories retrieved successfully",
+      message: "Stories retrieved successfully",
       data: stories,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
       success: true,
     });
   } catch (error) {
@@ -61,12 +111,24 @@ export const getAllStories = async (req, res) => {
 
 export const getStoryById = async (req, res) => {
   try {
-    const storyId = req.params.id; // Assuming the story ID is provided as a route parameter
-
-    // Fetch the story by ID from your database (assuming you have a "Story" model)
-    const story = await Story.findById(storyId);
+    const storyId = req.params.id;
+    const story = await Story.findById(storyId).populate(
+      "author",
+      "firstName lastName"
+    );
 
     if (!story) {
+      return res.status(404).json({
+        message: "Story not found",
+        success: false,
+      });
+    }
+
+    // Ensure story belongs to tenant
+    if (
+      req.tenant &&
+      story.tenant?.toString() !== req.tenant._id.toString()
+    ) {
       return res.status(404).json({
         message: "Story not found",
         success: false,
@@ -86,18 +148,23 @@ export const getStoryById = async (req, res) => {
 
 export const editStory = async (req, res) => {
   try {
-    // Get the story ID from the route parameters
     const storyId = req.params.id;
+    const { title, summary, content, image, status } = req.body;
 
-    // Get the updated story data from the request body
-    const { title, summary, content, image } = req.body;
+    const updateData = {};
+    if (title) updateData.title = title;
+    if (summary) updateData.summary = summary;
+    if (content) updateData.content = content;
+    if (image) updateData.image = image;
+    if (status) updateData.status = status;
 
-    // Find the story by ID and update its properties
-    const updatedStory = await Story.findByIdAndUpdate(storyId, {
-      title,
-      summary,
-      content,
-      image,
+    const filter = { _id: storyId };
+    if (req.tenant) {
+      filter.tenant = req.tenant._id;
+    }
+
+    const updatedStory = await Story.findOneAndUpdate(filter, updateData, {
+      new: true,
     });
 
     if (!updatedStory) {
@@ -120,11 +187,14 @@ export const editStory = async (req, res) => {
 
 export const deleteStory = async (req, res) => {
   try {
-    // Get the story ID from the route parameters
     const storyId = req.params.id;
 
-    // Find the story by ID and delete it
-    const deletedStory = await Story.findByIdAndRemove(storyId);
+    const filter = { _id: storyId };
+    if (req.tenant) {
+      filter.tenant = req.tenant._id;
+    }
+
+    const deletedStory = await Story.findOneAndDelete(filter);
 
     if (!deletedStory) {
       return res.status(404).json({

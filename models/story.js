@@ -7,10 +7,14 @@ const storySchema = new mongoose.Schema(
       ref: "user",
       required: true,
     },
+    tenant: {
+      type: mongoose.Schema.ObjectId,
+      ref: "tenant",
+      required: true,
+    },
     title: {
       type: String,
       required: true,
-      unique: true,
     },
     summary: {
       type: String,
@@ -25,9 +29,17 @@ const storySchema = new mongoose.Schema(
       default:
         "https://thersilentboy.com/wp-content/uploads/2022/09/Blogging.jpeg",
     },
+    status: {
+      type: String,
+      enum: ["draft", "published", "archived"],
+      default: "draft",
+    },
   },
   { timestamps: true }
 );
+
+storySchema.index({ tenant: 1 });
+storySchema.index({ tenant: 1, author: 1 });
 
 const Story = mongoose.model("story", storySchema);
 
