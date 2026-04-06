@@ -1,4 +1,4 @@
-# NexusHub - Plataforma SaaS Multi-Vertical
+# Vertix - Plataforma SaaS Multi-Vertical
 
 Plataforma SaaS multi-tenant completa com **9 produtos verticais** integrados. Arquitetura moderna, escalavel e pronta para producao.
 
@@ -56,7 +56,7 @@ docker compose exec backend npx prisma db seed
 
 | Perfil | Email |
 |--------|-------|
-| Super Admin | admin@nexushub.com |
+| Super Admin | admin@vertix.com |
 | Clinica Admin | admin@clinica.com |
 | Medica | ana@clinica.com |
 | Construcao Admin | admin@construtora.com |
@@ -71,7 +71,7 @@ docker compose exec backend npx prisma db seed
 ## Estrutura do Projeto
 
 ```
-nexushub/
+vertix/
 ├── apps/
 │   ├── backend/                 # API NestJS
 │   │   ├── prisma/              # Schema + migrations + seed

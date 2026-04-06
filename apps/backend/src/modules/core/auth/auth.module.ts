@@ -12,7 +12,7 @@ import { JwtStrategy } from './jwt.strategy';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'nexushub-dev-secret'),
+        secret: configService.get<string>('JWT_SECRET', 'vertix-dev-secret'),
         signOptions: {
           expiresIn: configService.get<string>('JWT_EXPIRATION', '24h'),
         },

@@ -1,4 +1,4 @@
-# Referencia da API - NexusHub
+# Referencia da API - Vertix
 
 ## Informacoes Gerais
 
@@ -68,7 +68,7 @@ Endpoints publicos (nao requerem autenticacao):
 ```json
 // Request Body
 {
-  "email": "admin@nexushub.com",
+  "email": "admin@vertix.com",
   "password": "Admin@123"
 }
 
@@ -78,7 +78,7 @@ Endpoints publicos (nao requerem autenticacao):
   "user": {
     "id": "uuid",
     "name": "Super Admin",
-    "email": "admin@nexushub.com",
+    "email": "admin@vertix.com",
     "tenantId": "uuid",
     "roles": ["super_admin"]
   }
@@ -452,7 +452,7 @@ Authorization: Bearer <token>
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@nexushub.com", "password": "Admin@123"}'
+  -d '{"email": "admin@vertix.com", "password": "Admin@123"}'
 ```
 
 ### Listar Pacientes (com token)

@@ -3,26 +3,26 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: nexushub-postgres
+    container_name: vertix-postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-nexushub}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nexushub_dev_pass}
-      POSTGRES_DB: ${POSTGRES_DB:-nexushub}
+      POSTGRES_USER: ${POSTGRES_USER:-vertix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vertix_dev_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-vertix}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nexushub}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vertix}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - nexushub-network
+      - vertix-network
 
   redis:
     image: redis:7-alpine
-    container_name: nexushub-redis
+    container_name: vertix-redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -33,15 +33,15 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - nexushub-network
+      - vertix-network
 
   minio:
     image: minio/minio:latest
-    container_name: nexushub-minio
+    container_name: vertix-minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-nexushub_minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-nexushub_minio_secret}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-vertix_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-vertix_minio_secret}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -53,27 +53,27 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - nexushub-network
+      - vertix-network
 
   backend:
     build:
       context: ./apps/backend
       dockerfile: Dockerfile
-    container_name: nexushub-backend
+    container_name: vertix-backend
     env_file:
       - .env
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://nexushub:nexushub_dev_pass@postgres:5432/nexushub?schema=public}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://vertix:vertix_dev_pass@postgres:5432/vertix?schema=public}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      JWT_SECRET: ${JWT_SECRET:-nexushub-dev-jwt-secret-change-in-production}
+      JWT_SECRET: ${JWT_SECRET:-vertix-dev-jwt-secret-change-in-production}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
       MINIO_ENDPOINT: minio
       MINIO_PORT: "9000"
       MINIO_USE_SSL: "false"
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-nexushub_minio}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-nexushub_minio_secret}
-      MINIO_BUCKET: ${MINIO_BUCKET:-nexushub-uploads}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-vertix_minio}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-vertix_minio_secret}
+      MINIO_BUCKET: ${MINIO_BUCKET:-vertix-uploads}
     ports:
       - "${BACKEND_PORT:-3001}:3001"
     volumes:
@@ -92,16 +92,16 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - nexushub-network
+      - vertix-network
 
   frontend:
     build:
       context: ./apps/frontend
       dockerfile: Dockerfile
-    container_name: nexushub-frontend
+    container_name: vertix-frontend
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080/api}
-      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-NexusHub}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Vertix}
     ports:
       - "3000:3000"
     volumes:
@@ -112,11 +112,11 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - nexushub-network
+      - vertix-network
 
   nginx:
     image: nginx:alpine
-    container_name: nexushub-nginx
+    container_name: vertix-nginx
     ports:
       - "${NGINX_PORT:-8080}:80"
     volumes:
@@ -125,22 +125,22 @@ services:
       - frontend
       - backend
     networks:
-      - nexushub-network
+      - vertix-network
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: nexushub-prometheus
+    container_name: vertix-prometheus
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
     networks:
-      - nexushub-network
+      - vertix-network
 
   grafana:
     image: grafana/grafana:latest
-    container_name: nexushub-grafana
+    container_name: vertix-grafana
     ports:
       - "${GRAFANA_PORT:-3002}:3000"
     environment:
@@ -153,7 +153,7 @@ services:
     depends_on:
       - prometheus
     networks:
-      - nexushub-network
+      - vertix-network
 
 volumes:
   postgres-data:
@@ -163,5 +163,5 @@ volumes:
   grafana-data:
 
 networks:
-  nexushub-network:
+  vertix-network:
     driver: bridge

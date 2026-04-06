@@ -27,7 +27,7 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('NexusHub API')
+    .setTitle('Vertix API')
     .setDescription('SaaS Multi-Vertical Platform - Clinic & Construction')
     .setVersion('1.0')
     .addBearerAuth()
@@ -51,7 +51,7 @@ async function bootstrap() {
 
   const port = process.env.BACKEND_PORT || 3001;
   await app.listen(port);
-  console.log(`NexusHub API running on port ${port}`);
+  console.log(`Vertix API running on port ${port}`);
   console.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 bootstrap();

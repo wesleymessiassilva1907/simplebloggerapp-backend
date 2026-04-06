@@ -39,9 +39,9 @@ async function main() {
 
   // Create super admin (belongs to clinic tenant for demo)
   const superAdmin = await prisma.user.upsert({
-    where: { email_tenantId: { email: 'admin@nexushub.com', tenantId: clinicTenant.id } },
+    where: { email_tenantId: { email: 'admin@vertix.com', tenantId: clinicTenant.id } },
     update: {},
-    create: { tenantId: clinicTenant.id, name: 'Super Admin', email: 'admin@nexushub.com', passwordHash, status: 'active' },
+    create: { tenantId: clinicTenant.id, name: 'Super Admin', email: 'admin@vertix.com', passwordHash, status: 'active' },
   });
   await prisma.userRole.upsert({
     where: { userId_roleId: { userId: superAdmin.id, roleId: superAdminRole.id } },
@@ -540,7 +540,7 @@ async function main() {
   console.log('🎉 Seed completed successfully!');
   console.log('');
   console.log('📧 Login credentials (password: Admin@123):');
-  console.log('   Super Admin:         admin@nexushub.com');
+  console.log('   Super Admin:         admin@vertix.com');
   console.log('   Clinic Admin:        admin@clinica.com');
   console.log('   Doctor:              ana@clinica.com');
   console.log('   Receptionist:        maria@clinica.com');

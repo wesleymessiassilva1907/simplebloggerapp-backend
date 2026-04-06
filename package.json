@@ -1,8 +1,8 @@
 {
-  "name": "nexushub",
+  "name": "vertix",
   "version": "1.0.0",
   "private": true,
-  "description": "NexusHub - SaaS Multi-Vertical Platform (Clinic + Construction)",
+  "description": "Vertix - SaaS Multi-Vertical Platform (Clinic + Construction)",
   "scripts": {
     "dev": "docker compose up --build",
     "dev:backend": "cd apps/backend && npm run start:dev",

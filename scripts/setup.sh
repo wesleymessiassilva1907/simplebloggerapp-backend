@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 NexusHub - Setup"
+echo "🚀 Vertix - Setup"
 echo "===================="
 
 # Copy env if needed
@@ -40,9 +40,9 @@ echo "  Frontend:   http://localhost:8080"
 echo "  Backend:    http://localhost:8080/api"
 echo "  Swagger:    http://localhost:8080/api/docs"
 echo "  Grafana:    http://localhost:3002 (admin/admin)"
-echo "  MinIO:      http://localhost:9001 (nexushub_minio/nexushub_minio_secret)"
+echo "  MinIO:      http://localhost:9001 (vertix_minio/vertix_minio_secret)"
 echo "  Prometheus: http://localhost:9090"
 echo ""
 echo "📧 Default credentials:"
-echo "  Super Admin: admin@nexushub.com / Admin@123"
+echo "  Super Admin: admin@vertix.com / Admin@123"
 echo ""

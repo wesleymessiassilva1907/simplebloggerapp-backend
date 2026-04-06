@@ -15,7 +15,7 @@ export async function api<T = any>(endpoint: string, options: FetchOptions = {})
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   } else if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('nexushub_token');
+    const stored = localStorage.getItem('vertix_token');
     if (stored) headers['Authorization'] = `Bearer ${stored}`;
   }
 
@@ -26,8 +26,8 @@ export async function api<T = any>(endpoint: string, options: FetchOptions = {})
 
   if (response.status === 401) {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('nexushub_token');
-      localStorage.removeItem('nexushub_user');
+      localStorage.removeItem('vertix_token');
+      localStorage.removeItem('vertix_user');
       window.location.href = '/auth/login';
     }
     throw new Error('Unauthorized');
@@ -43,21 +43,21 @@ export async function api<T = any>(endpoint: string, options: FetchOptions = {})
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('nexushub_token');
+  return localStorage.getItem('vertix_token');
 }
 
 export function getUser() {
   if (typeof window === 'undefined') return null;
-  const user = localStorage.getItem('nexushub_user');
+  const user = localStorage.getItem('vertix_user');
   return user ? JSON.parse(user) : null;
 }
 
 export function setAuth(token: string, user: any) {
-  localStorage.setItem('nexushub_token', token);
-  localStorage.setItem('nexushub_user', JSON.stringify(user));
+  localStorage.setItem('vertix_token', token);
+  localStorage.setItem('vertix_user', JSON.stringify(user));
 }
 
 export function clearAuth() {
-  localStorage.removeItem('nexushub_token');
-  localStorage.removeItem('nexushub_user');
+  localStorage.removeItem('vertix_token');
+  localStorage.removeItem('vertix_user');
 }

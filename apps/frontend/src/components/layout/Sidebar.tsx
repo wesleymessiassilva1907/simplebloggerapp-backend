@@ -120,7 +120,7 @@ export default function Sidebar() {
       collapsed ? 'w-16' : 'w-64'
     )}>
       <div className="flex items-center justify-between p-4 border-b border-secondary-700">
-        {!collapsed && <h1 className="text-xl font-bold text-primary-400">NexusHub</h1>}
+        {!collapsed && <h1 className="text-xl font-bold text-primary-400">Vertix</h1>}
         <button onClick={() => setCollapsed(!collapsed)} className="p-1 rounded hover:bg-secondary-700">
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>

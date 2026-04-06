@@ -1,8 +1,8 @@
-# Arquitetura do Sistema - NexusHub
+# Arquitetura do Sistema - Vertix
 
 ## Visao Geral
 
-O NexusHub e uma plataforma SaaS multi-vertical projetada para atender multiplos segmentos de mercado (clinicas medicas e construcao civil) com uma unica base de codigo. A arquitetura segue principios de modularidade, isolamento de dados e escalabilidade horizontal.
+O Vertix e uma plataforma SaaS multi-vertical projetada para atender multiplos segmentos de mercado (clinicas medicas e construcao civil) com uma unica base de codigo. A arquitetura segue principios de modularidade, isolamento de dados e escalabilidade horizontal.
 
 ## Design do Sistema
 
@@ -101,7 +101,7 @@ Cada vertical e um modulo NestJS isolado com seus proprios controllers, services
 
 ### Estrategia: Banco Compartilhado com Isolamento Logico
 
-O NexusHub utiliza a estrategia de **Shared Database, Shared Schema** com isolamento a nivel de linha (Row-Level Isolation):
+O Vertix utiliza a estrategia de **Shared Database, Shared Schema** com isolamento a nivel de linha (Row-Level Isolation):
 
 ```
 ┌──────────────────────────────────────────┐
@@ -283,7 +283,7 @@ ai/
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Docker Network                        │
-│                  (nexushub-network)                      │
+│                  (vertix-network)                      │
 │                                                         │
 │  ┌─────────┐    ┌─────────┐    ┌─────────────────┐     │
 │  │  Nginx  │--->│Frontend │    │    Backend      │     │
