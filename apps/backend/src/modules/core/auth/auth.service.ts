@@ -188,4 +188,56 @@ export class AuthService {
       },
     };
   }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findFirst({ where: { email, status: 'active' } });
+    if (!user) {
+      // Don't reveal if email exists
+      return { message: 'Se o email existir, um link de recuperacao sera enviado.' };
+    }
+
+    // Generate reset token (stored as notification for now, future: separate table)
+    const crypto = await import('crypto');
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+    await this.prisma.notification.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: user.id,
+        type: 'password_reset',
+        title: 'Password Reset',
+        content: resetToken,
+        status: 'pending',
+        metadata: { expiresAt: resetExpiry.toISOString() },
+      },
+    });
+
+    // Future: send email with reset link
+    console.log(`[Password Reset] Token for ${email}: ${resetToken}`);
+
+    return { message: 'Se o email existir, um link de recuperacao sera enviado.' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const notification = await this.prisma.notification.findFirst({
+      where: { type: 'password_reset', content: token, status: 'pending' },
+    });
+
+    if (!notification) {
+      throw new UnauthorizedException('Token invalido ou expirado');
+    }
+
+    const metadata = notification.metadata as any;
+    if (metadata?.expiresAt && new Date(metadata.expiresAt) < new Date()) {
+      await this.prisma.notification.update({ where: { id: notification.id }, data: { status: 'failed' } });
+      throw new UnauthorizedException('Token expirado');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({ where: { id: notification.userId! }, data: { passwordHash } });
+    await this.prisma.notification.update({ where: { id: notification.id }, data: { status: 'sent' } });
+
+    return { message: 'Senha alterada com sucesso' };
+  }
 }
