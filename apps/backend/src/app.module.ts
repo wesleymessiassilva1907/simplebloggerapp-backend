@@ -3,6 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { StorageModule } from './common/storage/storage.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { CacheModule } from './common/cache/cache.module';
+import { QueueModule } from './common/queue/queue.module';
+import { EmailModule } from './common/email/email.module';
 import { AuthModule } from './modules/core/auth/auth.module';
 import { TenantsModule } from './modules/core/tenants/tenants.module';
 import { UsersModule } from './modules/core/users/users.module';
@@ -73,6 +76,9 @@ import { DentalBillingsModule } from './modules/dental/billings/billings.module'
     PrismaModule,
     StorageModule,
     LoggerModule,
+    CacheModule,
+    QueueModule,
+    EmailModule,
     // Core
     AuthModule,
     TenantsModule,

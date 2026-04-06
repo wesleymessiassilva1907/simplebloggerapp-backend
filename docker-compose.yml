@@ -155,6 +155,46 @@ services:
     networks:
       - vertix-network
 
+  worker:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: vertix-worker
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://vertix:vertix_dev_pass@postgres:5432/vertix?schema=public}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      JWT_SECRET: ${JWT_SECRET:-vertix-dev-jwt-secret-change-in-production}
+      WORKER_MODE: "true"
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: "9000"
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-vertix_minio}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-vertix_minio_secret}
+      MINIO_BUCKET: ${MINIO_BUCKET:-vertix-uploads}
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - vertix-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: vertix-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - vertix-network
+
 volumes:
   postgres-data:
   redis-data:
