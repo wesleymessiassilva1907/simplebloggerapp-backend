@@ -14,9 +14,11 @@ async function main() {
     prisma.role.upsert({ where: { name: 'clinic_receptionist' }, update: {}, create: { name: 'clinic_receptionist', description: 'Receptionist - patient and appointment management' } }),
     prisma.role.upsert({ where: { name: 'construction_manager' }, update: {}, create: { name: 'construction_manager', description: 'Manager - construction module access' } }),
     prisma.role.upsert({ where: { name: 'construction_worker' }, update: {}, create: { name: 'construction_worker', description: 'Worker - limited construction access' } }),
+    prisma.role.upsert({ where: { name: 'barbershop_barber' }, update: {}, create: { name: 'barbershop_barber', description: 'Barber - barbershop module access' } }),
+    prisma.role.upsert({ where: { name: 'barbershop_receptionist' }, update: {}, create: { name: 'barbershop_receptionist', description: 'Receptionist - barbershop client and booking management' } }),
   ]);
 
-  const [superAdminRole, tenantAdminRole, doctorRole, receptionistRole, managerRole, workerRole] = roles;
+  const [superAdminRole, tenantAdminRole, doctorRole, receptionistRole, managerRole, workerRole, barberRole, barbershopReceptionistRole] = roles;
   console.log('✅ Roles created');
 
   // Create tenants
@@ -242,10 +244,115 @@ async function main() {
   ]);
   console.log('✅ Workers allocated to projects');
 
+  // ==================== BARBERSHOP ====================
+
+  const barbershopTenant = await prisma.tenant.upsert({
+    where: { slug: 'barbearia-style' },
+    update: {},
+    create: { name: 'Barbearia Style', slug: 'barbearia-style', status: 'active', plan: 'professional' },
+  });
+  console.log('✅ Barbershop tenant created');
+
+  // Barbershop admin user
+  const barbershopAdmin = await prisma.user.upsert({
+    where: { email_tenantId: { email: 'admin@barbearia.com', tenantId: barbershopTenant.id } },
+    update: {},
+    create: { tenantId: barbershopTenant.id, name: 'João Barbeiro', email: 'admin@barbearia.com', passwordHash, status: 'active' },
+  });
+  await prisma.userRole.upsert({
+    where: { userId_roleId: { userId: barbershopAdmin.id, roleId: tenantAdminRole.id } },
+    update: {},
+    create: { userId: barbershopAdmin.id, roleId: tenantAdminRole.id },
+  });
+
+  // Barbershop barber user
+  const barberUser = await prisma.user.upsert({
+    where: { email_tenantId: { email: 'pedro@barbearia.com', tenantId: barbershopTenant.id } },
+    update: {},
+    create: { tenantId: barbershopTenant.id, name: 'Pedro Cortes', email: 'pedro@barbearia.com', passwordHash, status: 'active' },
+  });
+  await prisma.userRole.upsert({
+    where: { userId_roleId: { userId: barberUser.id, roleId: barberRole.id } },
+    update: {},
+    create: { userId: barberUser.id, roleId: barberRole.id },
+  });
+  console.log('✅ Barbershop users created');
+
+  // Create barbers
+  const barbers = await Promise.all([
+    prisma.barbershopBarber.create({ data: { tenantId: barbershopTenant.id, name: 'Pedro Cortes', email: 'pedro@barbearia.com', phone: '(11) 91111-1111', specialty: 'corte', commission: 50 } }),
+    prisma.barbershopBarber.create({ data: { tenantId: barbershopTenant.id, name: 'Rafael Estilo', email: 'rafael@barbearia.com', phone: '(11) 91111-2222', specialty: 'barba', commission: 45 } }),
+    prisma.barbershopBarber.create({ data: { tenantId: barbershopTenant.id, name: 'Diego Navalha', email: 'diego@barbearia.com', phone: '(11) 91111-3333', specialty: 'coloração', commission: 55 } }),
+  ]);
+  console.log('✅ Barbers created');
+
+  // Create barbershop services
+  const barbershopServices = await Promise.all([
+    prisma.barbershopService.create({ data: { tenantId: barbershopTenant.id, name: 'Corte Masculino', description: 'Corte tradicional com máquina e tesoura', price: 45, duration: 30, category: 'corte' } }),
+    prisma.barbershopService.create({ data: { tenantId: barbershopTenant.id, name: 'Barba', description: 'Barba com navalha e toalha quente', price: 30, duration: 20, category: 'barba' } }),
+    prisma.barbershopService.create({ data: { tenantId: barbershopTenant.id, name: 'Combo Corte+Barba', description: 'Corte masculino + barba completa', price: 65, duration: 50, category: 'combo' } }),
+    prisma.barbershopService.create({ data: { tenantId: barbershopTenant.id, name: 'Pigmentação', description: 'Pigmentação capilar completa', price: 80, duration: 60, category: 'tratamento' } }),
+    prisma.barbershopService.create({ data: { tenantId: barbershopTenant.id, name: 'Corte Infantil', description: 'Corte para crianças até 12 anos', price: 35, duration: 25, category: 'corte' } }),
+  ]);
+  console.log('✅ Barbershop services created');
+
+  // Create barbershop clients
+  const barbershopClients = await Promise.all([
+    prisma.barbershopClient.create({ data: { tenantId: barbershopTenant.id, name: 'Lucas Mendes', phone: '(11) 98888-1111', email: 'lucas@email.com', birthDate: new Date('1992-04-10'), notes: 'Prefere corte degradê' } }),
+    prisma.barbershopClient.create({ data: { tenantId: barbershopTenant.id, name: 'Bruno Tavares', phone: '(11) 98888-2222', email: 'bruno@email.com', birthDate: new Date('1988-08-25') } }),
+    prisma.barbershopClient.create({ data: { tenantId: barbershopTenant.id, name: 'Thiago Rocha', phone: '(11) 98888-3333', email: 'thiago@email.com', birthDate: new Date('1995-01-15') } }),
+    prisma.barbershopClient.create({ data: { tenantId: barbershopTenant.id, name: 'Matheus Lima', phone: '(11) 98888-4444', birthDate: new Date('1990-11-30'), notes: 'Alérgico a amônia' } }),
+    prisma.barbershopClient.create({ data: { tenantId: barbershopTenant.id, name: 'Gabriel Santos', phone: '(11) 98888-5555', email: 'gabriel@email.com', birthDate: new Date('1985-06-20') } }),
+  ]);
+  console.log('✅ Barbershop clients created');
+
+  // Create barbershop bookings
+  const bookingToday = new Date();
+  const bookingTomorrow = new Date();
+  bookingTomorrow.setDate(bookingTomorrow.getDate() + 1);
+
+  await Promise.all([
+    prisma.barbershopBooking.create({
+      data: {
+        tenantId: barbershopTenant.id, clientId: barbershopClients[0].id, barberId: barbers[0].id,
+        bookingDate: new Date(bookingToday.getFullYear(), bookingToday.getMonth(), bookingToday.getDate(), 9, 0, 0),
+        status: 'scheduled', totalPrice: 45, notes: 'Corte degradê',
+        services: { create: [{ serviceId: barbershopServices[0].id, price: 45 }] },
+      },
+    }),
+    prisma.barbershopBooking.create({
+      data: {
+        tenantId: barbershopTenant.id, clientId: barbershopClients[1].id, barberId: barbers[1].id,
+        bookingDate: new Date(bookingToday.getFullYear(), bookingToday.getMonth(), bookingToday.getDate(), 10, 0, 0),
+        status: 'confirmed', totalPrice: 65,
+        services: { create: [{ serviceId: barbershopServices[2].id, price: 65 }] },
+      },
+    }),
+    prisma.barbershopBooking.create({
+      data: {
+        tenantId: barbershopTenant.id, clientId: barbershopClients[2].id, barberId: barbers[2].id,
+        bookingDate: new Date(bookingTomorrow.getFullYear(), bookingTomorrow.getMonth(), bookingTomorrow.getDate(), 14, 0, 0),
+        status: 'scheduled', totalPrice: 80,
+        services: { create: [{ serviceId: barbershopServices[3].id, price: 80 }] },
+      },
+    }),
+  ]);
+  console.log('✅ Barbershop bookings created');
+
+  // Create barbershop products
+  await Promise.all([
+    prisma.barbershopProduct.create({ data: { tenantId: barbershopTenant.id, name: 'Pomada Modeladora', description: 'Pomada efeito matte 150g', price: 45, stock: 30, category: 'pomada' } }),
+    prisma.barbershopProduct.create({ data: { tenantId: barbershopTenant.id, name: 'Óleo para Barba', description: 'Óleo hidratante para barba 60ml', price: 35, stock: 25, category: 'óleo' } }),
+    prisma.barbershopProduct.create({ data: { tenantId: barbershopTenant.id, name: 'Shampoo Anticaspa', description: 'Shampoo anticaspa 300ml', price: 28, stock: 40, category: 'shampoo' } }),
+    prisma.barbershopProduct.create({ data: { tenantId: barbershopTenant.id, name: 'Pente de Madeira', description: 'Pente artesanal de madeira', price: 25, stock: 15, category: 'acessório' } }),
+  ]);
+  console.log('✅ Barbershop products created');
+
   // Subscription plans
   await Promise.all([
     prisma.subscriptionPlan.create({ data: { tenantId: clinicTenant.id, planName: 'professional', price: 799, status: 'active' } }),
     prisma.subscriptionPlan.create({ data: { tenantId: constructionTenant.id, planName: 'starter', price: 500, status: 'active' } }),
+    prisma.subscriptionPlan.create({ data: { tenantId: barbershopTenant.id, planName: 'professional', price: 799, status: 'active' } }),
   ]);
   console.log('✅ Subscription plans created');
 
@@ -260,6 +367,8 @@ async function main() {
   console.log('   Construction Admin: admin@construtora.com');
   console.log('   Manager:            carlos@construtora.com');
   console.log('   Worker:             jose@construtora.com');
+  console.log('   Barbershop Admin:   admin@barbearia.com');
+  console.log('   Barber:             pedro@barbearia.com');
 }
 
 main()

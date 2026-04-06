@@ -17,6 +17,7 @@ const statusColors: Record<string, string> = {
   past_due: 'bg-red-100 text-red-700',
   sent: 'bg-green-100 text-green-700',
   failed: 'bg-red-100 text-red-700',
+  no_show: 'bg-orange-100 text-orange-700',
 };
 
 const statusLabels: Record<string, string> = {
@@ -24,6 +25,7 @@ const statusLabels: Record<string, string> = {
   in_progress: 'Em Andamento', completed: 'Concluído', canceled: 'Cancelado',
   pending: 'Pendente', paid: 'Pago', overdue: 'Vencido',
   blocked: 'Bloqueado', planning: 'Planejamento', paused: 'Pausado',
+  no_show: 'Não Compareceu',
 };
 
 export default function StatusBadge({ status }: { status: string }) {

@@ -33,6 +33,12 @@ model Tenant {
   constructionExpenses ConstructionExpense[]
   constructionWorkers ConstructionWorker[]
   constructionProjectWorkers ConstructionProjectWorker[]
+  barbershopBarbers    BarbershopBarber[]
+  barbershopServices   BarbershopService[]
+  barbershopClients    BarbershopClient[]
+  barbershopBookings   BarbershopBooking[]
+  barbershopProducts   BarbershopProduct[]
+  barbershopOrders     BarbershopOrder[]
 
   @@map("tenants")
 }
@@ -366,4 +372,153 @@ model ConstructionProjectWorker {
 
   @@index([tenantId])
   @@map("construction_project_workers")
+}
+
+// ==================== BARBERSHOP ====================
+
+model BarbershopBarber {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  email     String?
+  phone     String?
+  specialty String?  // ex: corte, barba, coloração
+  commission Decimal? @default(50) // percentage
+  isActive  Boolean  @default(true) @map("is_active")
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant              @relation(fields: [tenantId], references: [id])
+  bookings BarbershopBooking[]
+  orders   BarbershopOrder[]
+
+  @@index([tenantId])
+  @@map("barbershop_barbers")
+}
+
+model BarbershopService {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  description String?
+  price       Decimal
+  duration    Int      // in minutes
+  category    String?  // corte, barba, combo, tratamento
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant                    @relation(fields: [tenantId], references: [id])
+  bookings BarbershopBookingService[]
+
+  @@index([tenantId])
+  @@map("barbershop_services")
+}
+
+model BarbershopClient {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  phone     String?
+  email     String?
+  birthDate DateTime? @map("birth_date")
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant              @relation(fields: [tenantId], references: [id])
+  bookings BarbershopBooking[]
+  orders   BarbershopOrder[]
+
+  @@index([tenantId])
+  @@map("barbershop_clients")
+}
+
+model BarbershopBooking {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  clientId    String   @map("client_id")
+  barberId    String   @map("barber_id")
+  bookingDate DateTime @map("booking_date")
+  status      String   @default("scheduled") // scheduled, confirmed, in_progress, completed, canceled, no_show
+  notes       String?
+  totalPrice  Decimal? @map("total_price")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant                    @relation(fields: [tenantId], references: [id])
+  client   BarbershopClient          @relation(fields: [clientId], references: [id])
+  barber   BarbershopBarber          @relation(fields: [barberId], references: [id])
+  services BarbershopBookingService[]
+
+  @@index([tenantId])
+  @@index([tenantId, barberId, bookingDate])
+  @@map("barbershop_bookings")
+}
+
+model BarbershopBookingService {
+  id        String  @id @default(uuid())
+  bookingId String  @map("booking_id")
+  serviceId String  @map("service_id")
+  price     Decimal
+
+  booking BarbershopBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  service BarbershopService @relation(fields: [serviceId], references: [id])
+
+  @@map("barbershop_booking_services")
+}
+
+model BarbershopProduct {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  description String?
+  price       Decimal
+  stock       Int      @default(0)
+  category    String?  // pomada, shampoo, óleo, acessório
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant              @relation(fields: [tenantId], references: [id])
+  items  BarbershopOrderItem[]
+
+  @@index([tenantId])
+  @@map("barbershop_products")
+}
+
+model BarbershopOrder {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  clientId      String?   @map("client_id")
+  barberId      String?   @map("barber_id")
+  totalAmount   Decimal   @map("total_amount")
+  paymentMethod String?   @map("payment_method") // pix, credit_card, debit_card, cash
+  status        String    @default("pending") // pending, paid, canceled
+  paidAt        DateTime? @map("paid_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant               @relation(fields: [tenantId], references: [id])
+  client BarbershopClient?    @relation(fields: [clientId], references: [id])
+  barber BarbershopBarber?    @relation(fields: [barberId], references: [id])
+  items  BarbershopOrderItem[]
+
+  @@index([tenantId])
+  @@map("barbershop_orders")
+}
+
+model BarbershopOrderItem {
+  id        String  @id @default(uuid())
+  orderId   String  @map("order_id")
+  productId String? @map("product_id")
+  name      String
+  quantity  Int     @default(1)
+  price     Decimal
+
+  order   BarbershopOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product BarbershopProduct? @relation(fields: [productId], references: [id])
+
+  @@map("barbershop_order_items")
 }

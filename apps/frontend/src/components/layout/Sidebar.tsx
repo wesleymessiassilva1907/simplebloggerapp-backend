@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Stethoscope, Calendar, FileText, DollarSign,
   Building2, ListTodo, Receipt, HardHat, ChevronLeft, ChevronRight,
-  LogOut, Settings, Brain
+  LogOut, Settings, Brain, Scissors, ShoppingBag, UserCheck, Package, ClipboardList
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { clearAuth, getUser } from '@/lib/api';
@@ -28,12 +28,22 @@ const constructionMenu = [
   { name: 'Equipe', href: '/construction/workers', icon: HardHat },
 ];
 
+const barbershopMenu = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Agendamentos', href: '/barbershop/bookings', icon: Calendar },
+  { name: 'Barbeiros', href: '/barbershop/barbers', icon: Scissors },
+  { name: 'Clientes', href: '/barbershop/clients', icon: UserCheck },
+  { name: 'Serviços', href: '/barbershop/services', icon: ClipboardList },
+  { name: 'Produtos', href: '/barbershop/products', icon: Package },
+  { name: 'Comandas', href: '/barbershop/orders', icon: ShoppingBag },
+];
+
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [module, setModule] = useState<'clinic' | 'construction'>('clinic');
+  const [module, setModule] = useState<'clinic' | 'construction' | 'barbershop'>('clinic');
   const pathname = usePathname();
 
-  const menu = module === 'clinic' ? clinicMenu : constructionMenu;
+  const menu = module === 'clinic' ? clinicMenu : module === 'construction' ? constructionMenu : barbershopMenu;
 
   const handleLogout = () => {
     clearAuth();
@@ -69,6 +79,14 @@ export default function Sidebar() {
             )}
           >
             Construção
+          </button>
+          <button
+            onClick={() => setModule('barbershop')}
+            className={cn('flex-1 py-1.5 px-2 rounded text-xs font-medium transition-colors',
+              module === 'barbershop' ? 'bg-primary-600 text-white' : 'bg-secondary-700 text-gray-300 hover:bg-secondary-600'
+            )}
+          >
+            Barbearia
           </button>
         </div>
       )}

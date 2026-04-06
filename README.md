@@ -1,176 +1,137 @@
-# SaaS - Multi-tenant Blogging Platform
+# NexusHub - Plataforma SaaS Multi-Vertical
 
-A complete SaaS (Software as a Service) backend built with Node.js, Express, and MongoDB. This platform provides multi-tenant blogging capabilities with subscription management, role-based access control, usage tracking, and billing integration.
+Plataforma SaaS multi-tenant completa com três produtos verticais integrados: **Clínica Médica**, **Construção Civil** e **Barbearia**. Arquitetura moderna, escalável e pronta para produção.
 
-## Features
+## Stack Tecnológica
 
-- **Multi-tenancy**: Isolated data per tenant with slug/API key resolution
-- **Subscription Plans**: Free, Starter, Professional, and Enterprise tiers
-- **Role-Based Access Control (RBAC)**: super_admin, tenant_owner, admin, editor, viewer
-- **Usage Tracking**: API requests, stories created, storage used per day
-- **Rate Limiting**: Global and per-tenant API rate limiting
-- **Billing Integration**: Stripe webhook support for subscription lifecycle
-- **API Key Authentication**: Per-tenant API keys for programmatic access
-- **User Management**: Registration, activation via email, login, password reset
-- **Story Management**: Full CRUD with pagination, status (draft/published/archived)
+| Camada | Tecnologia |
+|--------|-----------|
+| Frontend | Next.js 14 + TypeScript + Tailwind CSS |
+| Backend | NestJS + TypeScript |
+| Banco de Dados | PostgreSQL 16 |
+| ORM | Prisma |
+| Cache | Redis 7 |
+| Armazenamento | MinIO (S3-compatível) |
+| Autenticação | JWT + RBAC |
+| Documentação API | Swagger/OpenAPI |
+| Reverse Proxy | Nginx |
+| Observabilidade | Prometheus + Grafana |
+| Containerização | Docker + Docker Compose |
 
-## Tech Stack
-
-- **Runtime**: Node.js (ES Modules)
-- **Framework**: Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT (JSON Web Tokens)
-- **Billing**: Stripe
-- **Email**: Nodemailer
-- **Security**: bcrypt, CORS, rate limiting
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- MongoDB
-- Stripe account (for billing)
-
-### Installation
+## Início Rápido
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd saas
+# 1. Clone o repositório
+git clone <url> && cd nexushub
 
-# Install dependencies
-npm install
-
-# Setup environment variables
+# 2. Configure as variáveis de ambiente
 cp .env.example .env
-# Edit .env with your configuration
 
-# Start development server
-npm run dev
+# 3. Suba todos os serviços
+docker compose up --build
+
+# 4. Em outro terminal, execute as migrations e seeds
+docker compose exec backend npx prisma migrate deploy
+docker compose exec backend npx prisma db seed
 ```
 
-### Seed Plans
-
-After starting the server, seed the default subscription plans:
-
+Ou use o script automatizado:
 ```bash
-curl -X POST http://localhost:5005/api/subscriptions/plans/seed
+bash scripts/setup.sh
 ```
 
-## API Endpoints
+## Pontos de Acesso
 
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register a new user |
-| GET | `/api/auth/activate/:token` | Activate account |
-| POST | `/api/auth/login` | Login |
-| POST | `/api/auth/forgotpassword` | Request password reset |
-| GET | `/api/auth/verifyRandomString/:token` | Verify reset token |
-| PUT | `/api/auth/resetpassword/:token` | Reset password |
-| GET | `/api/auth/private` | Get private data (auth required) |
+| Serviço | URL | Credenciais |
+|---------|-----|-------------|
+| Frontend | http://localhost:8080 | - |
+| Backend API | http://localhost:8080/api | - |
+| Swagger Docs | http://localhost:8080/api/docs | - |
+| Grafana | http://localhost:3002 | admin / admin |
+| MinIO Console | http://localhost:9001 | nexushub_minio / nexushub_minio_secret |
+| Prometheus | http://localhost:9090 | - |
 
-### Tenants
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/tenants` | Create a tenant |
-| GET | `/api/tenants/:id` | Get tenant details |
-| PUT | `/api/tenants/:id` | Update tenant |
-| DELETE | `/api/tenants/:id` | Deactivate tenant |
-| POST | `/api/tenants/:id/regenerate-api-key` | Regenerate API key |
-| POST | `/api/tenants/:id/invite` | Invite user to tenant |
-| GET | `/api/tenants/:id/members` | List tenant members |
+## Credenciais de Demo
 
-### Subscriptions
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/subscriptions/plans` | List available plans |
-| POST | `/api/subscriptions/plans/seed` | Seed default plans |
-| GET | `/api/subscriptions/:tenantId` | Get subscription |
-| PUT | `/api/subscriptions/:tenantId/change-plan` | Change plan |
-| POST | `/api/subscriptions/:tenantId/cancel` | Cancel subscription |
-| GET | `/api/subscriptions/:tenantId/usage` | Get usage stats |
+| Perfil | Email | Senha |
+|--------|-------|-------|
+| Super Admin | admin@nexushub.com | Admin@123 |
+| Admin Clínica | admin@clinica.com | Admin@123 |
+| Médica | ana@clinica.com | Admin@123 |
+| Recepcionista | maria@clinica.com | Admin@123 |
+| Admin Construção | admin@construtora.com | Admin@123 |
+| Gerente Obra | carlos@construtora.com | Admin@123 |
+| Trabalhador | jose@construtora.com | Admin@123 |
+| Admin Barbearia | admin@barbearia.com | Admin@123 |
+| Barbeiro | pedro@barbearia.com | Admin@123 |
 
-### Stories (requires `X-Tenant-Slug` or `X-API-Key` header)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/story/addstory` | Create a story |
-| GET | `/api/story/getAllStories` | List stories (paginated) |
-| GET | `/api/story/:id` | Get story by ID |
-| PUT | `/api/story/:id` | Update a story |
-| DELETE | `/api/story/:id` | Delete a story |
-
-### Webhooks
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/webhooks/stripe` | Stripe webhook handler |
-
-## Subscription Plans
-
-| Feature | Free | Starter | Professional | Enterprise |
-|---------|------|---------|--------------|------------|
-| Price (monthly) | R$0 | R$29 | R$79 | R$199 |
-| Users | 2 | 5 | 25 | 100 |
-| Stories | 10 | 100 | 1,000 | Unlimited |
-| Storage | 1 GB | 10 GB | 50 GB | 500 GB |
-| API Requests/day | 100 | 1,000 | 10,000 | Unlimited |
-| Custom Domain | - | - | Yes | Yes |
-| Custom Branding | - | - | Yes | Yes |
-| Priority Support | - | - | - | Yes |
-
-## Multi-tenancy
-
-Tenants are resolved via HTTP headers:
-- `X-Tenant-Slug`: Tenant slug identifier
-- `X-API-Key`: Tenant API key
-
-All story operations are scoped to the resolved tenant.
-
-## Project Structure
+## Estrutura do Projeto
 
 ```
-├── config/
-│   └── database.js          # MongoDB connection
-├── controllers/
-│   ├── auth.js              # Authentication logic
-│   ├── story.js             # Story CRUD with tenant scoping
-│   ├── subscription.js      # Plans, subscriptions, usage
-│   ├── tenant.js            # Tenant management
-│   └── webhook.js           # Stripe webhook handler
-├── middleware/
-│   ├── auth.js              # JWT authentication
-│   ├── customErrorHandler.js # Error handling
-│   ├── rateLimiter.js       # Rate limiting & usage tracking
-│   ├── rbac.js              # Role-based access control
-│   └── tenantResolver.js    # Multi-tenant resolution
-├── models/
-│   ├── plan.js              # Subscription plans
-│   ├── story.js             # Blog stories
-│   ├── subscription.js      # Tenant subscriptions
-│   ├── tenant.js            # Tenant/organization
-│   ├── usage.js             # Usage tracking
-│   └── user.js              # Users with roles
-├── routes/
-│   ├── auth.js              # Auth routes
-│   ├── index.js             # Route aggregator
-│   ├── story.js             # Story routes
-│   ├── subscription.js      # Subscription routes
-│   ├── tenant.js            # Tenant routes
-│   └── webhook.js           # Webhook routes
-├── utils/
-│   ├── deleteImage.js       # Image deletion
-│   ├── email.js             # Email sending
-│   ├── error.js             # Custom error class
-│   ├── jwt.js               # JWT utilities
-│   ├── password.js          # Password hashing
-│   ├── uploadImage.js       # Image upload
-│   └── user.js              # User query helpers
-├── .env.example             # Environment variables template
-├── package.json
-└── server.js                # Application entry point
+nexushub/
+├── apps/
+│   ├── backend/                 # API NestJS
+│   │   ├── prisma/              # Schema + migrations + seed
+│   │   └── src/
+│   │       ├── common/          # Guards, decorators, filters, DTOs
+│   │       └── modules/
+│   │           ├── core/        # Auth, Tenants, Users, Roles, Audit, Health
+│   │           ├── clinic/      # Patients, Doctors, Appointments, Records, Billing
+│   │           ├── construction/# Projects, Tasks, Expenses, Workers
+│   │           ├── barbershop/  # Barbers, Services, Bookings, Products, Orders
+│   │           └── ai/         # IA assistiva (mock)
+│   └── frontend/               # Next.js App
+│       └── src/
+│           ├── app/            # Pages (login, dashboard, modules)
+│           ├── components/     # UI components
+│           ├── lib/            # API client, utilities
+│           └── types/          # TypeScript interfaces
+├── infra/
+│   ├── nginx/                  # Reverse proxy config
+│   ├── prometheus/             # Metrics collection
+│   └── grafana/                # Dashboards + datasources
+├── docs/                       # Documentação detalhada
+├── scripts/                    # Scripts de automação
+├── docker-compose.yml          # Orquestração de serviços
+└── .env.example                # Template de variáveis
 ```
 
-## License
+## Módulos
+
+### Core
+Autenticação JWT, RBAC com 6+ perfis, multi-tenancy, auditoria, notificações, billing.
+
+### Clínica Médica
+Pacientes, médicos, agendamentos, prontuários, faturamento, dashboard.
+
+### Construção Civil
+Projetos/obras, tarefas, despesas, equipe, alocação, dashboard com orçamento x realizado.
+
+### Barbearia
+Barbeiros, serviços, agendamentos online, clientes, produtos, comandas, financeiro, dashboard.
+
+## Multi-Tenancy
+
+Modelo de banco compartilhado com isolamento lógico via `tenant_id`. Todas as queries são filtradas automaticamente pelo tenant do usuário autenticado via Guards do NestJS.
+
+## Autenticação e Autorização
+
+- **JWT** com access token no header `Authorization: Bearer <token>`
+- **RBAC** com perfis: `super_admin`, `tenant_admin`, `clinic_doctor`, `clinic_receptionist`, `construction_manager`, `construction_worker`, `barbershop_barber`, `barbershop_receptionist`
+- Guards automáticos por rota
+
+## Documentação
+
+- [Arquitetura](docs/architecture.md)
+- [Domínio Clínica](docs/domain-clinic.md)
+- [Domínio Construção](docs/domain-construction.md)
+- [Domínio Barbearia](docs/domain-barbershop.md)
+- [API Reference](docs/api.md)
+- [Docker](docs/docker.md)
+- [Segurança](docs/security.md)
+- [Roadmap](docs/roadmap.md)
+- [Plano de Implementação](docs/implementation-plan.md)
+
+## Licença
 
 ISC

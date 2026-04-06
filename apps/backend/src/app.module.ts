@@ -20,6 +20,12 @@ import { ExpensesModule } from './modules/construction/expenses/expenses.module'
 import { WorkersModule } from './modules/construction/workers/workers.module';
 import { AiModule } from './modules/ai/ai.module';
 import { MetricsModule } from './modules/core/health/metrics.module';
+import { BarbersModule } from './modules/barbershop/barbers/barbers.module';
+import { BarbershopServicesModule } from './modules/barbershop/services/services.module';
+import { BarbershopClientsModule } from './modules/barbershop/clients/clients.module';
+import { BookingsModule } from './modules/barbershop/bookings/bookings.module';
+import { ProductsModule } from './modules/barbershop/products/products.module';
+import { OrdersModule } from './modules/barbershop/orders/orders.module';
 
 @Module({
   imports: [
@@ -44,6 +50,12 @@ import { MetricsModule } from './modules/core/health/metrics.module';
     ExpensesModule,
     WorkersModule,
     AiModule,
+    BarbersModule,
+    BarbershopServicesModule,
+    BarbershopClientsModule,
+    BookingsModule,
+    ProductsModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}
