@@ -823,6 +823,7 @@ model LegalClient {
   address   String?
   notes     String?
   status    String   @default("active")
+  deletedAt DateTime? @map("deleted_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -851,6 +852,7 @@ model LegalCase {
   nextHearingDate DateTime? @map("next_hearing_date")
   notes          String?
   aiSummary      String?   @map("ai_summary")
+  deletedAt      DateTime? @map("deleted_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
@@ -877,6 +879,7 @@ model LegalDocument {
   version     Int      @default(1)
   status      String   @default("draft") // draft, review, final, filed
   aiAnalysis  String?  @map("ai_analysis")
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -898,6 +901,7 @@ model LegalTask {
   status      String    @default("pending") // pending, in_progress, completed, overdue
   priority    String    @default("medium")
   assignedTo  String?   @map("assigned_to")
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
@@ -921,6 +925,7 @@ model LegalBilling {
   status        String    @default("pending") // pending, invoiced, paid, canceled
   dueDate       DateTime? @map("due_date")
   paidAt        DateTime? @map("paid_at")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -967,6 +972,7 @@ model RestaurantMenuItem {
   allergens   Json?    // gluten, lactose, nuts, etc.
   calories    Int?
   sortOrder   Int      @default(0) @map("sort_order")
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -1000,6 +1006,7 @@ model RestaurantOrder {
   deliveredAt     DateTime? @map("delivered_at")
   canceledAt      DateTime? @map("canceled_at")
   cancelReason    String?   @map("cancel_reason")
+  deletedAt       DateTime? @map("deleted_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
@@ -1040,6 +1047,7 @@ model RestaurantDriver {
   licensePlate String? @map("license_plate")
   isAvailable Boolean @default(true) @map("is_available")
   status    String   @default("offline") // online, offline, delivering
+  deletedAt DateTime? @map("deleted_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -1067,6 +1075,7 @@ model AestheticClient {
   photoConsent  Boolean   @default(false) @map("photo_consent")
   notes         String?
   source        String?   // instagram, referral, google, walk_in
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -1092,6 +1101,7 @@ model AestheticProcedure {
   contraindications Json?
   aftercare     String?
   isActive      Boolean  @default(true) @map("is_active")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -1117,6 +1127,7 @@ model AestheticAppointment {
   notes         String?
   professional  String?   // who performed
   productsUsed  Json?     @map("products_used")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -1139,6 +1150,7 @@ model AestheticPackage {
   validityDays  Int?     @map("validity_days")
   discount      Decimal? // percentage
   isActive      Boolean  @default(true) @map("is_active")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -1173,6 +1185,7 @@ model AestheticBilling {
   installments  Int?      @default(1)
   dueDate       DateTime? @map("due_date")
   paidAt        DateTime? @map("paid_at")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -1200,6 +1213,7 @@ model DentalPatient {
   allergies        Json?
   lastVisit        DateTime? @map("last_visit")
   notes            String?
+  deletedAt        DateTime? @map("deleted_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
@@ -1223,6 +1237,7 @@ model DentalDentist {
   workDays    Json?    @map("work_days") // array of weekdays
   workHours   Json?    @map("work_hours") // { start: "08:00", end: "18:00" }
   isActive    Boolean  @default(true) @map("is_active")
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -1244,6 +1259,7 @@ model DentalTreatment {
   price         Decimal
   toothRelated  Boolean  @default(true) @map("tooth_related")
   isActive      Boolean  @default(true) @map("is_active")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -1266,6 +1282,7 @@ model DentalAppointment {
   toothNumber     String?   @map("tooth_number") // ISO notation
   notes           String?
   clinicalNotes   String?   @map("clinical_notes")
+  deletedAt       DateTime? @map("deleted_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
@@ -1291,6 +1308,7 @@ model DentalTreatmentPlan {
   startDate   DateTime? @map("start_date")
   endDate     DateTime? @map("end_date")
   notes       String?
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
@@ -1331,6 +1349,7 @@ model DentalBilling {
   installments  Int?      @default(1)
   dueDate       DateTime? @map("due_date")
   paidAt        DateTime? @map("paid_at")
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
