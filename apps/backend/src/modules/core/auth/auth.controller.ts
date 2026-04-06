@@ -32,4 +32,12 @@ export class AuthController {
   async getMe(@Request() req) {
     return this.authService.getMe(req.user.sub);
   }
+
+  @Post('refresh')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Refresh access token' })
+  async refresh(@Request() req) {
+    return this.authService.refreshToken(req.user.sub);
+  }
 }

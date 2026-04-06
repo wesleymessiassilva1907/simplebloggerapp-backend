@@ -17,21 +17,11 @@ const STATUS_WORKFLOW: Record<string, string[]> = {
 export class RestaurantOrdersService {
   constructor(private prisma: PrismaService) {}
 
-  private async generateOrderNumber(tenantId: string): Promise<string> {
-    const today = new Date();
-    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(startOfDay.getTime() + 86400000);
-
-    const count = await this.prisma.restaurantOrder.count({
-      where: {
-        tenantId,
-        createdAt: { gte: startOfDay, lt: endOfDay },
-      },
-    });
-
-    const seq = String(count + 1).padStart(4, '0');
-    return `ORD-${dateStr}-${seq}`;
+  private generateOrderNumber(): string {
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `ORD-${dateStr}-${randomSuffix}`;
   }
 
   async findAll(
@@ -73,7 +63,7 @@ export class RestaurantOrdersService {
   }
 
   async create(tenantId: string, dto: CreateRestaurantOrderDto) {
-    const orderNumber = await this.generateOrderNumber(tenantId);
+    const orderNumber = this.generateOrderNumber();
 
     // Fetch menu items to get prices and names
     const menuItemIds = dto.items.map((i) => i.menuItemId);

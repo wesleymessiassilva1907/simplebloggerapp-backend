@@ -161,4 +161,31 @@ export class AuthService {
       roles: user.userRoles.map((ur) => ur.role.name),
     };
   }
+
+  async refreshToken(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { userRoles: { include: { role: true } }, tenant: true },
+    });
+
+    if (!user || user.status !== 'active') {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (user.tenant.status !== 'active') {
+      throw new UnauthorizedException('Tenant is not active');
+    }
+
+    const roles = user.userRoles.map((ur) => ur.role.name);
+    const payload = { sub: user.id, email: user.email, tenantId: user.tenantId, roles };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id, name: user.name, email: user.email,
+        tenantId: user.tenantId, tenantName: user.tenant.name,
+        tenantSlug: user.tenant.slug, roles,
+      },
+    };
+  }
 }
