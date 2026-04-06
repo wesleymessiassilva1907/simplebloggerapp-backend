@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api, setAuth } from '@/lib/api';
 
 export default function LoginPage() {
@@ -67,6 +68,12 @@ export default function LoginPage() {
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
+
+            <div className="text-center mt-2">
+              <Link href="/auth/forgot-password" className="text-sm text-brand-500 hover:text-brand-600">
+                Esqueceu a senha?
+              </Link>
+            </div>
           </form>
 
           {/* Quick login buttons for all 9 demo tenants */}
