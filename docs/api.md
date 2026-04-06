@@ -1,243 +1,492 @@
-# Referência da API - NexusHub
+# Referencia da API - NexusHub
 
-## Informações Gerais
+## Informacoes Gerais
 
 - **Base URL**: `http://localhost:8080/api`
-- **Formato**: JSON
-- **Autenticação**: Bearer Token (JWT) no header `Authorization`
-- **Documentação Interativa**: Swagger UI disponível em `/api/docs`
+- **Formato**: JSON (application/json)
+- **Autenticacao**: Bearer Token (JWT) no header `Authorization`
+- **Documentacao Interativa**: Swagger UI disponivel em `http://localhost:8080/api/docs`
+- **Prefixo Global**: Todos os endpoints sao prefixados com `/api`
 
-## Autenticação
+## Autenticacao
 
-Todas as rotas (exceto login e registro) exigem o header:
+Todas as rotas (exceto login, registro e health check) exigem o header:
 ```
 Authorization: Bearer <jwt_token>
 ```
 
-## Módulo Core
+O token e obtido via endpoint de login e contem: `sub` (userId), `tenantId` e `roles`.
 
-### Auth
+## Codigos de Resposta
 
-| Método | Rota | Descrição | Auth |
-|--------|------|-----------|------|
-| POST | `/api/auth/login` | Login com email e senha | Não |
-| POST | `/api/auth/register-initial-tenant-admin` | Registrar tenant + admin | Não |
-| GET | `/api/auth/me` | Dados do usuário autenticado | Sim |
+| Codigo | Descricao |
+|--------|-----------|
+| 200 | Sucesso |
+| 201 | Recurso criado com sucesso |
+| 400 | Requisicao invalida (erro de validacao) |
+| 401 | Nao autenticado (token ausente ou invalido) |
+| 403 | Sem permissao (RBAC - role insuficiente) |
+| 404 | Recurso nao encontrado |
+| 409 | Conflito (duplicata) |
+| 500 | Erro interno do servidor |
+
+## Paginacao
+
+Todos os endpoints de listagem suportam os seguintes query parameters:
+
+| Parametro | Tipo | Padrao | Descricao |
+|-----------|------|--------|-----------|
+| page | number | 1 | Numero da pagina |
+| limit | number | 10 | Itens por pagina |
+
+Resposta paginada:
+```json
+{
+  "data": [...],
+  "total": 100,
+  "page": 1,
+  "limit": 10,
+  "totalPages": 10
+}
+```
+
+---
+
+## Modulo Core
+
+### Auth (`/api/auth`)
+
+Endpoints publicos (nao requerem autenticacao):
+
+| Metodo | Rota | Descricao | Auth Requerida |
+|--------|------|-----------|:--------------:|
+| POST | `/api/auth/login` | Login com email e senha | Nao |
+| POST | `/api/auth/register-initial-tenant-admin` | Registrar novo tenant com usuario admin | Nao |
+| GET | `/api/auth/me` | Dados do usuario autenticado | Sim |
 
 **POST /api/auth/login**
 ```json
-// Request
-{ "email": "admin@nexushub.com", "password": "Admin@123" }
+// Request Body
+{
+  "email": "admin@nexushub.com",
+  "password": "Admin@123"
+}
 
 // Response 200
-{ "access_token": "eyJhbGciOiJIUzI1NiIs...", "user": { "id": "uuid", "email": "...", "roles": ["super_admin"] } }
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "id": "uuid",
+    "name": "Super Admin",
+    "email": "admin@nexushub.com",
+    "tenantId": "uuid",
+    "roles": ["super_admin"]
+  }
+}
 ```
 
-### Users
+**POST /api/auth/register-initial-tenant-admin**
+```json
+// Request Body
+{
+  "tenantName": "Minha Clinica",
+  "tenantSlug": "minha-clinica",
+  "userName": "Dr. Joao",
+  "email": "joao@minhaclinica.com",
+  "password": "MinhaS3nha!"
+}
+```
 
-| Método | Rota | Descrição | Perfis |
-|--------|------|-----------|--------|
-| GET | `/api/users` | Listar usuários do tenant | tenant_admin |
-| GET | `/api/users/:id` | Detalhar usuário | tenant_admin |
-| POST | `/api/users` | Criar usuário | tenant_admin |
-| PUT | `/api/users/:id` | Atualizar usuário | tenant_admin |
-| DELETE | `/api/users/:id` | Desativar usuário | tenant_admin |
+**GET /api/auth/me**
+```
+Authorization: Bearer <token>
+// Response 200 - retorna dados do usuario autenticado com roles
+```
 
-### Tenants
+### Users (`/api/users`)
 
-| Método | Rota | Descrição | Perfis |
-|--------|------|-----------|--------|
-| GET | `/api/tenants` | Listar tenants | super_admin |
-| GET | `/api/tenants/:id` | Detalhar tenant | super_admin, tenant_admin |
-| PUT | `/api/tenants/:id` | Atualizar tenant | tenant_admin |
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/users` | Listar usuarios do tenant (paginado) | super_admin, tenant_admin |
+| GET | `/api/users/:id` | Buscar usuario por ID | super_admin, tenant_admin |
+| POST | `/api/users` | Criar novo usuario | super_admin, tenant_admin |
+| PUT | `/api/users/:id` | Atualizar usuario | super_admin, tenant_admin |
+| DELETE | `/api/users/:id` | Desativar usuario | super_admin, tenant_admin |
 
-### Roles
+### Tenants (`/api/tenants`)
 
-| Método | Rota | Descrição | Perfis |
-|--------|------|-----------|--------|
-| GET | `/api/roles` | Listar roles disponíveis | tenant_admin |
-| POST | `/api/roles/assign` | Atribuir role a usuário | tenant_admin |
-| DELETE | `/api/roles/remove` | Remover role de usuário | tenant_admin |
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/tenants` | Listar todos os tenants | super_admin |
+| GET | `/api/tenants/:id` | Buscar tenant por ID | super_admin, tenant_admin |
+| PUT | `/api/tenants/:id` | Atualizar tenant | super_admin, tenant_admin |
+| DELETE | `/api/tenants/:id` | Desativar tenant | super_admin |
 
-### Billing
+### Roles (`/api/roles`)
 
-| Método | Rota | Descrição | Perfis |
-|--------|------|-----------|--------|
-| GET | `/api/billing/subscription` | Assinatura atual | tenant_admin |
-| GET | `/api/billing/plans` | Planos disponíveis | tenant_admin |
-| POST | `/api/billing/change-plan` | Alterar plano | tenant_admin |
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/roles` | Listar todas as roles disponiveis | super_admin, tenant_admin |
+| POST | `/api/roles/:userId/assign/:roleId` | Atribuir role a um usuario | super_admin, tenant_admin |
+| DELETE | `/api/roles/:userId/remove/:roleId` | Remover role de um usuario | super_admin, tenant_admin |
 
-### Audit
+**Roles Disponiveis:**
+- `super_admin` - Acesso total a plataforma
+- `tenant_admin` - Administrador do tenant
+- `clinic_doctor` - Medico (modulo clinica)
+- `clinic_receptionist` - Recepcionista (modulo clinica)
+- `construction_manager` - Gerente de obras (modulo construcao)
+- `construction_worker` - Trabalhador (modulo construcao)
 
-| Método | Rota | Descrição | Perfis |
-|--------|------|-----------|--------|
-| GET | `/api/audit` | Listar logs de auditoria | tenant_admin, super_admin |
+### Billing (`/api/billing`)
 
-### Notifications
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/billing/subscription` | Obter assinatura atual do tenant | Autenticado |
+| GET | `/api/billing/plans` | Listar planos disponiveis | Autenticado |
 
-| Método | Rota | Descrição | Perfis |
-|--------|------|-----------|--------|
-| GET | `/api/notifications` | Listar notificações | all authenticated |
-| PATCH | `/api/notifications/:id/read` | Marcar como lida | all authenticated |
+### Audit (`/api/audit`)
 
-### Health
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/audit` | Listar logs de auditoria do tenant (paginado) | super_admin, tenant_admin |
 
-| Método | Rota | Descrição | Auth |
-|--------|------|-----------|------|
-| GET | `/api/health` | Status de todos os serviços | Não |
+### Notifications (`/api/notifications`)
 
-## Módulo Clínica
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/notifications` | Listar notificacoes do tenant (paginado) | Autenticado |
 
-### Pacientes
+### Health (`/api/health`)
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/clinic/patients` | Listar pacientes (paginado) |
-| GET | `/api/clinic/patients/:id` | Detalhar paciente |
-| POST | `/api/clinic/patients` | Cadastrar paciente |
-| PUT | `/api/clinic/patients/:id` | Atualizar paciente |
-| DELETE | `/api/clinic/patients/:id` | Desativar paciente |
+| Metodo | Rota | Descricao | Auth Requerida |
+|--------|------|-----------|:--------------:|
+| GET | `/api/health` | Health check (verifica banco de dados) | Nao |
 
-### Médicos
+```json
+// Response 200
+{
+  "status": "ok",
+  "timestamp": "2026-04-06T12:00:00.000Z",
+  "services": {
+    "database": "up"
+  }
+}
+```
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/clinic/doctors` | Listar médicos |
-| GET | `/api/clinic/doctors/:id` | Detalhar médico |
-| POST | `/api/clinic/doctors` | Cadastrar médico |
-| PUT | `/api/clinic/doctors/:id` | Atualizar médico |
+---
 
-### Agendamentos
+## Modulo Clinica
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/clinic/appointments` | Listar agendamentos (filtros: data, médico, status) |
-| GET | `/api/clinic/appointments/:id` | Detalhar agendamento |
-| POST | `/api/clinic/appointments` | Criar agendamento |
-| PUT | `/api/clinic/appointments/:id` | Atualizar agendamento |
-| PATCH | `/api/clinic/appointments/:id/status` | Alterar status |
+### Pacientes (`/api/clinic/patients`)
 
-### Prontuários
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/clinic/patients` | Listar pacientes | tenant_admin, clinic_doctor, clinic_receptionist |
+| GET | `/api/clinic/patients/:id` | Buscar paciente por ID | tenant_admin, clinic_doctor, clinic_receptionist |
+| POST | `/api/clinic/patients` | Cadastrar paciente | tenant_admin, clinic_receptionist |
+| PUT | `/api/clinic/patients/:id` | Atualizar paciente | tenant_admin, clinic_receptionist |
+| DELETE | `/api/clinic/patients/:id` | Excluir paciente | tenant_admin |
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/clinic/medical-records/patient/:patientId` | Prontuários do paciente |
-| POST | `/api/clinic/medical-records` | Criar registro médico |
-| PUT | `/api/clinic/medical-records/:id` | Atualizar registro |
+**Query Parameters (GET lista):**
+- `page` (number): Pagina
+- `limit` (number): Itens por pagina
+- `search` (string): Busca por nome
 
-### Faturamento Clínico
+**POST /api/clinic/patients**
+```json
+{
+  "name": "Joao da Silva",
+  "cpf": "123.456.789-00",
+  "birthDate": "1985-03-15",
+  "phone": "(11) 98888-1111",
+  "email": "joao@email.com",
+  "address": "Rua das Flores, 123 - Sao Paulo",
+  "emergencyContact": "Maria - (11) 98888-2222"
+}
+```
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/clinic/billing` | Listar faturamentos |
-| GET | `/api/clinic/billing/dashboard` | Dashboard financeiro |
-| PATCH | `/api/clinic/billing/:id/pay` | Registrar pagamento |
+### Medicos (`/api/clinic/doctors`)
 
-## Módulo Construção Civil
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/clinic/doctors` | Listar medicos (paginado) | tenant_admin, clinic_doctor, clinic_receptionist |
+| GET | `/api/clinic/doctors/:id` | Buscar medico por ID | tenant_admin, clinic_doctor, clinic_receptionist |
+| POST | `/api/clinic/doctors` | Cadastrar medico | tenant_admin |
+| PUT | `/api/clinic/doctors/:id` | Atualizar medico | tenant_admin |
+| DELETE | `/api/clinic/doctors/:id` | Excluir medico | tenant_admin |
 
-### Projetos
+**POST /api/clinic/doctors**
+```json
+{
+  "name": "Dra. Ana Santos",
+  "email": "ana@clinica.com",
+  "specialty": "Clinica Geral",
+  "crm": "CRM/SP 123456",
+  "phone": "(11) 99999-1111"
+}
+```
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/construction/projects` | Listar projetos |
-| GET | `/api/construction/projects/:id` | Detalhar projeto (com resumo financeiro) |
-| POST | `/api/construction/projects` | Criar projeto |
-| PUT | `/api/construction/projects/:id` | Atualizar projeto |
-| PATCH | `/api/construction/projects/:id/status` | Alterar status |
-| GET | `/api/construction/projects/dashboard` | Dashboard geral |
+### Agendamentos (`/api/clinic/appointments`)
 
-### Tarefas
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/clinic/appointments` | Listar agendamentos (com filtros) | tenant_admin, clinic_doctor, clinic_receptionist |
+| GET | `/api/clinic/appointments/:id` | Buscar agendamento por ID | tenant_admin, clinic_doctor, clinic_receptionist |
+| POST | `/api/clinic/appointments` | Criar agendamento | tenant_admin, clinic_receptionist |
+| PUT | `/api/clinic/appointments/:id` | Atualizar agendamento | tenant_admin, clinic_doctor, clinic_receptionist |
+| DELETE | `/api/clinic/appointments/:id` | Excluir agendamento | tenant_admin |
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/construction/tasks?projectId=` | Listar tarefas do projeto |
-| POST | `/api/construction/tasks` | Criar tarefa |
-| PUT | `/api/construction/tasks/:id` | Atualizar tarefa |
-| PATCH | `/api/construction/tasks/:id/status` | Alterar status |
+**Query Parameters (GET lista):**
+- `page`, `limit`: Paginacao
+- `doctorId` (UUID): Filtrar por medico
+- `status` (string): scheduled, confirmed, in_progress, completed, canceled
+- `date` (YYYY-MM-DD): Filtrar por data especifica
 
-### Despesas
+**POST /api/clinic/appointments**
+```json
+{
+  "patientId": "uuid-do-paciente",
+  "doctorId": "uuid-do-medico",
+  "appointmentDate": "2026-04-07T09:00:00.000Z",
+  "notes": "Consulta de rotina"
+}
+```
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/construction/expenses?projectId=` | Listar despesas |
-| POST | `/api/construction/expenses` | Registrar despesa |
-| PATCH | `/api/construction/expenses/:id/approve` | Aprovar despesa |
-| PATCH | `/api/construction/expenses/:id/reject` | Rejeitar despesa |
+### Prontuarios Medicos (`/api/clinic/medical-records`)
 
-### Trabalhadores
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/clinic/medical-records` | Listar prontuarios | tenant_admin, clinic_doctor |
+| GET | `/api/clinic/medical-records/:id` | Buscar prontuario por ID | tenant_admin, clinic_doctor |
+| POST | `/api/clinic/medical-records` | Criar prontuario | tenant_admin, clinic_doctor |
+| PUT | `/api/clinic/medical-records/:id` | Atualizar prontuario | tenant_admin, clinic_doctor |
+| DELETE | `/api/clinic/medical-records/:id` | Excluir prontuario | tenant_admin |
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/construction/workers` | Listar trabalhadores |
-| POST | `/api/construction/workers` | Cadastrar trabalhador |
-| PUT | `/api/construction/workers/:id` | Atualizar trabalhador |
-| POST | `/api/construction/workers/:id/allocate` | Alocar em projeto |
+**Query Parameters (GET lista):**
+- `page`, `limit`: Paginacao
+- `patientId` (UUID): Filtrar por paciente
 
-## Módulo Barbearia
+**POST /api/clinic/medical-records**
+```json
+{
+  "patientId": "uuid-do-paciente",
+  "doctorId": "uuid-do-medico",
+  "appointmentId": "uuid-do-agendamento",
+  "description": "Paciente relata dores de cabeca frequentes",
+  "diagnosis": "Cefaleia tensional",
+  "prescription": "Paracetamol 750mg - 1 comprimido a cada 8 horas"
+}
+```
 
-### Barbeiros
+### Faturamento Clinico (`/api/clinic/billing`)
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/barbershop/barbers` | Listar barbeiros |
-| POST | `/api/barbershop/barbers` | Cadastrar barbeiro |
-| PUT | `/api/barbershop/barbers/:id` | Atualizar barbeiro |
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/clinic/billing/dashboard` | Dashboard financeiro resumido | tenant_admin, clinic_receptionist |
+| GET | `/api/clinic/billing` | Listar faturamentos (paginado) | tenant_admin, clinic_receptionist |
+| GET | `/api/clinic/billing/:id` | Buscar faturamento por ID | tenant_admin, clinic_receptionist |
+| POST | `/api/clinic/billing` | Criar faturamento | tenant_admin, clinic_receptionist |
+| PUT | `/api/clinic/billing/:id` | Atualizar faturamento | tenant_admin, clinic_receptionist |
+| DELETE | `/api/clinic/billing/:id` | Excluir faturamento | tenant_admin |
 
-### Serviços
+**Query Parameters (GET lista):**
+- `page`, `limit`: Paginacao
+- `status` (string): pending, paid, overdue, canceled
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/barbershop/services` | Listar serviços |
-| POST | `/api/barbershop/services` | Criar serviço |
-| PUT | `/api/barbershop/services/:id` | Atualizar serviço |
+**POST /api/clinic/billing**
+```json
+{
+  "patientId": "uuid-do-paciente",
+  "appointmentId": "uuid-do-agendamento",
+  "amount": 250.00,
+  "paymentMethod": "pix",
+  "dueDate": "2026-04-15T00:00:00.000Z"
+}
+```
 
-### Agendamentos
+---
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/barbershop/bookings` | Listar agendamentos |
-| POST | `/api/barbershop/bookings` | Criar agendamento |
-| PATCH | `/api/barbershop/bookings/:id/status` | Alterar status |
-| GET | `/api/barbershop/bookings/available-slots` | Horários disponíveis |
+## Modulo Construcao Civil
 
-### Produtos e Comandas
+### Projetos (`/api/construction/projects`)
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/barbershop/products` | Listar produtos |
-| POST | `/api/barbershop/products` | Cadastrar produto |
-| GET | `/api/barbershop/orders` | Listar comandas |
-| POST | `/api/barbershop/orders` | Abrir comanda |
-| PATCH | `/api/barbershop/orders/:id/close` | Fechar comanda |
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/construction/projects/dashboard` | Dashboard resumo da construcao | tenant_admin, construction_manager |
+| GET | `/api/construction/projects` | Listar projetos (paginado) | tenant_admin, construction_manager, construction_worker |
+| GET | `/api/construction/projects/:id` | Buscar projeto por ID | tenant_admin, construction_manager, construction_worker |
+| POST | `/api/construction/projects` | Criar projeto | tenant_admin, construction_manager |
+| PUT | `/api/construction/projects/:id` | Atualizar projeto | tenant_admin, construction_manager |
+| DELETE | `/api/construction/projects/:id` | Excluir projeto | tenant_admin |
 
-## Módulo IA
+**Query Parameters (GET lista):**
+- `page`, `limit`: Paginacao
+- `status` (string): planning, in_progress, paused, completed, canceled
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| POST | `/api/ai/clinic-summary` | Resumo de consulta clínica |
-| POST | `/api/ai/construction-risk` | Análise de risco de projeto |
+**POST /api/construction/projects**
+```json
+{
+  "name": "Edificio Residencial Aurora",
+  "description": "Construcao de edificio de 12 andares",
+  "startDate": "2025-01-15",
+  "endDate": "2026-06-30",
+  "budget": 5000000.00,
+  "status": "planning",
+  "location": "Av. Brasil, 1500 - Sao Paulo"
+}
+```
 
-## Paginação
+### Tarefas (`/api/construction/tasks`)
 
-Endpoints de listagem suportam os query params:
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/construction/tasks` | Listar tarefas (com filtros) | tenant_admin, construction_manager, construction_worker |
+| GET | `/api/construction/tasks/:id` | Buscar tarefa por ID | tenant_admin, construction_manager, construction_worker |
+| POST | `/api/construction/tasks` | Criar tarefa | tenant_admin, construction_manager |
+| PUT | `/api/construction/tasks/:id` | Atualizar tarefa | tenant_admin, construction_manager |
+| DELETE | `/api/construction/tasks/:id` | Excluir tarefa | tenant_admin, construction_manager |
 
-| Parâmetro | Tipo | Padrão | Descrição |
-|-----------|------|--------|-----------|
-| page | number | 1 | Número da página |
-| limit | number | 10 | Itens por página |
-| search | string | - | Busca textual |
-| sortBy | string | createdAt | Campo de ordenação |
-| sortOrder | string | desc | Direção (asc/desc) |
+**Query Parameters (GET lista):**
+- `page`, `limit`: Paginacao
+- `projectId` (UUID): Filtrar por projeto
+- `status` (string): pending, in_progress, completed, blocked
 
-## Códigos de Resposta
+**POST /api/construction/tasks**
+```json
+{
+  "projectId": "uuid-do-projeto",
+  "name": "Terraplanagem",
+  "description": "Nivelamento do terreno",
+  "status": "pending",
+  "progressPercent": 0,
+  "startDate": "2025-01-15",
+  "endDate": "2025-02-15"
+}
+```
 
-| Código | Descrição |
-|--------|-----------|
-| 200 | Sucesso |
-| 201 | Criado com sucesso |
-| 400 | Requisição inválida (validação) |
-| 401 | Não autenticado |
-| 403 | Sem permissão (RBAC) |
-| 404 | Recurso não encontrado |
-| 409 | Conflito (duplicata) |
-| 500 | Erro interno do servidor |
+### Despesas (`/api/construction/expenses`)
+
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/construction/expenses` | Listar despesas | tenant_admin, construction_manager |
+| GET | `/api/construction/expenses/:id` | Buscar despesa por ID | tenant_admin, construction_manager |
+| POST | `/api/construction/expenses` | Registrar despesa | tenant_admin, construction_manager |
+| PUT | `/api/construction/expenses/:id` | Atualizar despesa | tenant_admin, construction_manager |
+| DELETE | `/api/construction/expenses/:id` | Excluir despesa | tenant_admin, construction_manager |
+
+**Query Parameters (GET lista):**
+- `page`, `limit`: Paginacao
+- `projectId` (UUID): Filtrar por projeto
+
+**POST /api/construction/expenses**
+```json
+{
+  "projectId": "uuid-do-projeto",
+  "description": "Concreto para fundacao",
+  "category": "material",
+  "amount": 350000.00,
+  "expenseDate": "2025-02-20",
+  "supplier": "Concreteira SP"
+}
+```
+
+### Trabalhadores (`/api/construction/workers`)
+
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| GET | `/api/construction/workers` | Listar trabalhadores | tenant_admin, construction_manager |
+| GET | `/api/construction/workers/:id` | Buscar trabalhador por ID | tenant_admin, construction_manager |
+| POST | `/api/construction/workers` | Cadastrar trabalhador | tenant_admin, construction_manager |
+| PUT | `/api/construction/workers/:id` | Atualizar trabalhador | tenant_admin, construction_manager |
+| DELETE | `/api/construction/workers/:id` | Excluir trabalhador | tenant_admin, construction_manager |
+| POST | `/api/construction/workers/:id/allocate/:projectId` | Alocar trabalhador a um projeto | tenant_admin, construction_manager |
+
+**POST /api/construction/workers**
+```json
+{
+  "name": "Jose da Silva",
+  "email": "jose@construtora.com",
+  "phone": "(11) 93333-1111",
+  "role": "Pedreiro",
+  "dailyCost": 250.00
+}
+```
+
+---
+
+## Modulo IA
+
+| Metodo | Rota | Descricao | Roles Permitidas |
+|--------|------|-----------|-----------------|
+| POST | `/api/ai/clinic/summary` | Gerar resumo de consulta clinica com IA | Autenticado |
+| POST | `/api/ai/construction/risk` | Avaliar risco de projeto de construcao com IA | Autenticado |
+
+**POST /api/ai/clinic/summary**
+```json
+{
+  "patientName": "Joao da Silva",
+  "symptoms": "Dor de cabeca frequente, tontura",
+  "diagnosis": "Cefaleia tensional",
+  "prescription": "Paracetamol 750mg"
+}
+```
+
+**POST /api/ai/construction/risk**
+```json
+{
+  "projectName": "Edificio Aurora",
+  "budget": 5000000,
+  "totalSpent": 1130000,
+  "progressPercent": 35,
+  "daysRemaining": 450,
+  "openTasks": 4
+}
+```
+
+---
+
+## Exemplos de Uso com cURL
+
+### Login
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@nexushub.com", "password": "Admin@123"}'
+```
+
+### Listar Pacientes (com token)
+```bash
+curl http://localhost:8080/api/clinic/patients?page=1&limit=10 \
+  -H "Authorization: Bearer <seu_token_jwt>"
+```
+
+### Criar Projeto de Construcao
+```bash
+curl -X POST http://localhost:8080/api/construction/projects \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <seu_token_jwt>" \
+  -d '{
+    "name": "Novo Projeto",
+    "description": "Descricao do projeto",
+    "budget": 1000000,
+    "status": "planning"
+  }'
+```
+
+---
+
+## Swagger / OpenAPI
+
+A documentacao interativa da API esta disponivel em:
+
+```
+http://localhost:8080/api/docs
+```
+
+Todos os endpoints estao documentados com:
+- Descricao da operacao
+- Parametros requeridos e opcionais
+- Schemas de request/response
+- Autenticacao Bearer configurada
+- Tags agrupando por modulo (Auth, Users, Tenants, Clinic - Patients, Construction - Projects, etc)
