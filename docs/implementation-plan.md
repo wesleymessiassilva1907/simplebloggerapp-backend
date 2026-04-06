@@ -1,165 +1,306 @@
-# Plano de Implementação - NexusHub
+# Plano de Implementacao - NexusHub
 
-## Visão Geral
+## Visao Geral
 
-Este documento detalha a ordem de desenvolvimento, prioridades, riscos e definição de MVP para cada vertical do NexusHub.
+Este documento detalha a ordem de desenvolvimento, prioridades, riscos, definicao de MVP por vertical e recomendacoes de equipe para o NexusHub.
 
 ## Ordem de Desenvolvimento
 
-### Princípio: Core primeiro, verticais em paralelo
+### Principio: Core primeiro, verticais em paralelo
+
+O modulo Core deve ser implementado e estabilizado antes dos verticais, pois todos dependem de autenticacao, multi-tenancy e RBAC.
 
 ```
-Semana 1-2:  [Core] Auth + Tenants + Users + RBAC
-Semana 3:    [Core] Audit + Health + Billing básico
-Semana 4-5:  [Clínica] Patients + Doctors + Appointments
-Semana 5-6:  [Construção] Projects + Tasks + Workers
-Semana 6-7:  [Barbearia] Barbers + Services + Bookings
-Semana 7-8:  [Clínica] Medical Records + Billing
-Semana 8-9:  [Construção] Expenses + Dashboard
-Semana 9-10: [Barbearia] Products + Orders + Dashboard
-Semana 11:   [Frontend] Dashboards + UX polish
-Semana 12:   [Infra] Docker + CI/CD + Monitoramento
+Semana 1-2:  [Core] Auth + Tenants + Users + RBAC + Health
+Semana 3:    [Core] Audit + Notifications + Billing basico
+Semana 4-5:  [Clinica] Patients + Doctors + Appointments
+Semana 5-6:  [Construcao] Projects + Tasks + Workers
+Semana 7:    [Clinica] Medical Records + Billing + Dashboard
+Semana 8:    [Construcao] Expenses + Worker Allocation + Dashboard
+Semana 9:    [AI] Clinic Summary + Construction Risk
+Semana 10:   [Frontend] Dashboards + UX polish + Formularios
+Semana 11:   [Testes] Unit tests + Integration tests + E2E
+Semana 12:   [Infra] Docker + CI/CD + Monitoramento + Deploy
 ```
+
+### Dependencias entre Modulos
+
+```
+Core (Auth + Tenants + Users + Roles + Health)
+  |
+  +-- Clinic Module
+  |     +-- Patients (depende de: Core)
+  |     +-- Doctors (depende de: Core)
+  |     +-- Appointments (depende de: Patients, Doctors)
+  |     +-- Medical Records (depende de: Patients, Doctors, Appointments)
+  |     +-- Clinic Billing (depende de: Patients, Appointments)
+  |
+  +-- Construction Module
+  |     +-- Projects (depende de: Core)
+  |     +-- Workers (depende de: Core)
+  |     +-- Tasks (depende de: Projects)
+  |     +-- Expenses (depende de: Projects)
+  |     +-- Project Workers (depende de: Projects, Workers)
+  |
+  +-- AI Module
+        +-- Clinic Summary (depende de: Clinic)
+        +-- Construction Risk (depende de: Construction)
+```
+
+## Prioridades Tecnicas
+
+### P0 - Critico (bloqueia lancamento)
+
+| # | Item | Responsavel | Status |
+|:-:|------|-------------|:------:|
+| 1 | Autenticacao JWT funcional e segura | Backend | Implementado |
+| 2 | Isolamento multi-tenant sem vazamento de dados | Backend | Implementado |
+| 3 | RBAC impedindo acesso nao autorizado em todos os endpoints | Backend | Implementado |
+| 4 | Migrations e seed funcionando no Docker | DevOps | Implementado |
+| 5 | Nginx roteando corretamente para frontend e backend | DevOps | Implementado |
+| 6 | Health check verificando todos os servicos | Backend | Implementado |
+| 7 | Swagger documentando todos os endpoints | Backend | Implementado |
+
+### P1 - Importante (necessario para uso real)
+
+| # | Item | Responsavel | Status |
+|:-:|------|-------------|:------:|
+| 1 | Validacao de dados de entrada em todos os endpoints | Backend | Em andamento |
+| 2 | Tratamento de erros padronizado (filtros de excecao) | Backend | Implementado |
+| 3 | Paginacao em todas as listagens | Backend | Implementado |
+| 4 | Testes automatizados para fluxos criticos | QA | Pendente |
+| 5 | Upload de arquivos com MinIO | Backend | Pendente |
+| 6 | Notificacoes por email | Backend | Pendente |
+| 7 | Dashboard funcional no frontend | Frontend | Em andamento |
+
+### P2 - Desejavel (melhora a experiencia)
+
+| # | Item | Responsavel | Status |
+|:-:|------|-------------|:------:|
+| 1 | Dashboard com graficos por vertical | Frontend | Pendente |
+| 2 | Relatorios PDF (faturamento, resumo de obra) | Backend | Pendente |
+| 3 | Exportacao CSV/Excel | Backend | Pendente |
+| 4 | Busca avancada com filtros combinados | Backend | Pendente |
+| 5 | Integracao Stripe para pagamentos | Backend | Pendente |
+| 6 | IA real (OpenAI/Claude) para resumos e analises | Backend | Pendente |
 
 ## MVP por Vertical
 
 ### MVP Core
 
-| Funcionalidade | Status | Critério de Aceite |
-|---------------|--------|-------------------|
-| Login/Logout com JWT | Essencial | Token válido retornado, rotas protegidas |
-| Registro de tenant + admin | Essencial | Tenant criado com usuário admin |
-| CRUD de usuários | Essencial | Admin gerencia usuários do tenant |
-| RBAC com guards | Essencial | Perfis bloqueiam/liberam acesso corretamente |
-| Health check | Essencial | Endpoint retorna status de todos os serviços |
-| Auditoria básica | Desejável | Ações de escrita registradas no log |
+| Funcionalidade | Criterio de Aceite | Status |
+|---------------|-------------------|:------:|
+| Login/Logout com JWT | Token valido retornado, rotas protegidas | OK |
+| Registro de tenant + admin | Tenant criado com usuario admin e role atribuida | OK |
+| CRUD de usuarios | Admin gerencia usuarios do tenant com paginacao | OK |
+| RBAC com guards | 6 perfis bloqueiam/liberam acesso corretamente | OK |
+| Health check | Endpoint retorna status do banco e servicos | OK |
+| Auditoria basica | Acoes de escrita registradas no log de auditoria | OK |
+| Gestao de roles | Atribuir e remover roles de usuarios | OK |
+| Billing basico | Visualizar assinatura atual e planos disponiveis | OK |
+| Notificacoes | Listar notificacoes do tenant | OK |
 
-### MVP Clínica Médica
+### MVP Clinica Medica
 
-| Funcionalidade | Status | Critério de Aceite |
-|---------------|--------|-------------------|
-| Cadastro de pacientes | Essencial | CRUD com validação de CPF único |
-| Cadastro de médicos | Essencial | Vinculado a usuário com role clinic_doctor |
-| Agendamento de consultas | Essencial | Sem conflito de horário, validação de disponibilidade |
-| Prontuário eletrônico | Essencial | Criação por médico, histórico por paciente |
-| Dashboard de consultas | Desejável | Consultas do dia, faturamento, cancelamentos |
-| Faturamento | Desejável | Geração automática ao completar consulta |
+| Funcionalidade | Criterio de Aceite | Status |
+|---------------|-------------------|:------:|
+| Cadastro de pacientes | CRUD com busca por nome e paginacao | OK |
+| Cadastro de medicos | CRUD com especialidade e CRM | OK |
+| Agendamento de consultas | Criar com paciente+medico, filtrar por data/medico/status | OK |
+| Prontuario eletronico | Criacao por medico, historico por paciente, dados sensiveis protegidos | OK |
+| Faturamento clinico | CRUD com dashboard financeiro, status de pagamento | OK |
+| Dashboard | Resumo financeiro com totais | OK |
 
-### MVP Construção Civil
+### MVP Construcao Civil
 
-| Funcionalidade | Status | Critério de Aceite |
-|---------------|--------|-------------------|
-| CRUD de projetos/obras | Essencial | Com orçamento, prazo e status |
-| Gestão de tarefas | Essencial | Atribuição a trabalhadores, status kanban |
-| Registro de despesas | Essencial | Com categoria, valor e comprovante |
-| Cadastro de trabalhadores | Essencial | Com função e diária |
-| Dashboard financeiro | Desejável | Orçamento vs. realizado por projeto |
-| Aprovação de despesas | Desejável | Workflow de aprovação pelo gerente |
+| Funcionalidade | Criterio de Aceite | Status |
+|---------------|-------------------|:------:|
+| CRUD de projetos/obras | Com orcamento, prazo, status e localizacao | OK |
+| Gestao de tarefas | Vinculadas a projeto, progresso percentual, filtro por status | OK |
+| Registro de despesas | Com categoria, valor, fornecedor, filtro por projeto | OK |
+| Cadastro de trabalhadores | Com funcao e custo diario | OK |
+| Alocacao de equipe | Vincular trabalhador a projeto com data de alocacao | OK |
+| Dashboard | Resumo de projetos com metricas | OK |
 
-### MVP Barbearia
+## Roadmap 90 Dias - Detalhado
 
-| Funcionalidade | Status | Critério de Aceite |
-|---------------|--------|-------------------|
-| Cadastro de barbeiros | Essencial | Com horários e comissão |
-| Catálogo de serviços | Essencial | Com preço e duração |
-| Agendamento online | Essencial | Sem conflito, slots disponíveis |
-| Cadastro de clientes | Essencial | Com histórico de visitas |
-| Sistema de comandas | Desejável | Abrir, adicionar itens, fechar |
-| Controle de produtos | Desejável | Estoque com alertas |
-
-## Prioridades Técnicas
-
-### P0 - Crítico (bloqueia lançamento)
-
-1. Autenticação JWT funcional e segura
-2. Isolamento multi-tenant sem vazamento de dados
-3. RBAC impedindo acesso não autorizado
-4. Migrations e seed funcionando no Docker
-5. Nginx roteando corretamente para frontend e backend
-
-### P1 - Importante (necessário para uso real)
-
-1. Validação de dados de entrada em todos os endpoints
-2. Tratamento de erros padronizado (filtros de exceção)
-3. Paginação em todas as listagens
-4. Swagger documentando todos os endpoints
-5. Testes automatizados para fluxos críticos
-
-### P2 - Desejável (melhora a experiência)
-
-1. Dashboard com gráficos por vertical
-2. Notificações por e-mail
-3. Upload de arquivos (MinIO)
-4. Relatórios PDF
-5. Exportação CSV
-
-## Riscos e Mitigações
-
-| Risco | Probabilidade | Impacto | Mitigação |
-|-------|--------------|---------|-----------|
-| Vazamento de dados entre tenants | Baixa | Crítico | Testes de isolamento, TenantGuard obrigatório, code review |
-| Performance com muitos tenants | Média | Alto | Índices compostos, connection pooling, cache Redis |
-| Complexidade de manutenção | Média | Médio | Padrões consistentes, documentação, modularização |
-| Scope creep por vertical | Alta | Médio | MVP bem definido, backlog priorizado, sprints curtos |
-| Dependência de um dev | Alta | Alto | Documentação completa, pair programming, code review |
-| Downtime em produção | Baixa | Alto | Docker healthchecks, monitoramento, backup automático |
-| LGPD não conformidade | Média | Crítico | Auditoria, criptografia, política de privacidade |
-
-## Dependências entre Módulos
+### Dias 1-30: Fundacao
 
 ```
-Core (Auth + Tenants + Users + Roles)
-  │
-  ├── Clinic Module
-  │     ├── Patients (depende de: Core)
-  │     ├── Doctors (depende de: Core, Users)
-  │     ├── Appointments (depende de: Patients, Doctors)
-  │     ├── Medical Records (depende de: Patients, Doctors, Appointments)
-  │     └── Billing (depende de: Appointments)
-  │
-  ├── Construction Module
-  │     ├── Projects (depende de: Core)
-  │     ├── Workers (depende de: Core, Users)
-  │     ├── Tasks (depende de: Projects, Workers)
-  │     └── Expenses (depende de: Projects)
-  │
-  └── Barbershop Module
-        ├── Barbers (depende de: Core, Users)
-        ├── Services (depende de: Core)
-        ├── Clients (depende de: Core)
-        ├── Bookings (depende de: Barbers, Services, Clients)
-        ├── Products (depende de: Core)
-        └── Orders (depende de: Bookings, Products, Clients)
+Semana 1:
+  - [ ] Testes unitarios Core: AuthService, UsersService, TenantsService
+  - [ ] Testes unitarios Core: RolesService, AuditService
+  - [ ] Configurar Jest com banco de teste isolado
+
+Semana 2:
+  - [ ] Testes unitarios Clinica: PatientsService, DoctorsService
+  - [ ] Testes unitarios Clinica: AppointmentsService, MedicalRecordsService
+  - [ ] Testes unitarios Construcao: ProjectsService, TasksService
+  - [ ] Testes unitarios Construcao: ExpensesService, WorkersService
+
+Semana 3:
+  - [ ] Testes de integracao E2E: fluxo de auth completo
+  - [ ] Testes de integracao E2E: fluxo clinica (paciente -> agendamento -> prontuario)
+  - [ ] Testes de integracao E2E: fluxo construcao (projeto -> tarefa -> despesa)
+  - [ ] Upload de arquivos via MinIO (exames, comprovantes, fotos)
+
+Semana 4:
+  - [ ] Notificacoes por email (Nodemailer + templates)
+  - [ ] Melhorias de UX no frontend (loading, error states, feedback)
+  - [ ] Pipeline CI/CD completa (GitHub Actions)
+  - [ ] Correcoes de bugs encontrados nos testes
 ```
 
-## Critérios de Done
+### Dias 31-60: Monetizacao
 
-Uma funcionalidade é considerada pronta quando:
+```
+Semana 5:
+  - [ ] Integracao Stripe: criar customer, subscription, webhook
+  - [ ] Portal de billing: trocar plano, cancelar, ver historico
+  - [ ] Logica de limites por plano (usuarios, armazenamento)
 
-1. Endpoint implementado com validação de entrada
-2. Guard de tenant e roles aplicado
-3. Testes unitários cobrindo casos principais
-4. Swagger documentado com exemplos
-5. Frontend com tela funcional (CRUD ou dashboard)
-6. Code review aprovado
-7. Sem regressão em testes existentes
+Semana 6:
+  - [ ] Dashboards Grafana: metricas HTTP, latencia, erros
+  - [ ] Dashboards Grafana: metricas de negocio (consultas/dia, projetos)
+  - [ ] Alertas Prometheus: erro 5xx > 1%, latencia P95 > 1s
 
-## Estratégia de Deploy
+Semana 7:
+  - [ ] Geracao de PDF: faturamento da clinica
+  - [ ] Geracao de PDF: resumo de obra (orcamento vs realizado)
+  - [ ] Exportacao CSV para todas as listagens
 
-| Fase | Ambiente | Estratégia |
+Semana 8:
+  - [ ] Busca avancada com filtros combinados
+  - [ ] Ordenacao por coluna no frontend
+  - [ ] Melhorias de performance (cache Redis para listagens)
+```
+
+### Dias 61-90: Expansao
+
+```
+Semana 9:
+  - [ ] PWA: service worker, manifest, instalacao
+  - [ ] Push notifications (agendamentos, lembretes)
+  - [ ] Testes de compatibilidade mobile
+
+Semana 10:
+  - [ ] Integracao WhatsApp (API de confirmacao de agendamento)
+  - [ ] Modulo financeiro: fluxo de caixa simplificado
+  - [ ] DRE simplificado por tenant
+
+Semana 11:
+  - [ ] Agendamento online publico (link compartilhavel)
+  - [ ] Dashboard avancado de obras (timeline de tarefas)
+  - [ ] Tema customizavel por tenant (cores, logo)
+
+Semana 12:
+  - [ ] Documentacao de API publica
+  - [ ] Preparacao para lancamento (checklist de producao)
+  - [ ] Deploy em ambiente de producao
+```
+
+## Riscos e Mitigacoes
+
+| Risco | Probabilidade | Impacto | Mitigacao |
+|-------|:------------:|:-------:|-----------|
+| Vazamento de dados entre tenants | Baixa | Critico | Testes de isolamento automatizados, TenantGuard obrigatorio, code review rigoroso |
+| Performance com muitos tenants | Media | Alto | Indices compostos com tenantId, connection pooling, cache Redis, paginacao |
+| Complexidade de manutencao | Media | Medio | Padroes consistentes entre modulos, documentacao, modularizacao NestJS |
+| Scope creep por vertical | Alta | Medio | MVP bem definido, backlog priorizado, sprints de 2 semanas |
+| Dependencia de desenvolvedor unico | Alta | Alto | Documentacao completa, pair programming, code review, CI/CD |
+| Downtime em producao | Baixa | Alto | Docker healthchecks, monitoramento Grafana, backup automatico, blue/green deploy |
+| LGPD nao conformidade | Media | Critico | Auditoria, criptografia, acesso restrito a prontuarios, DPO |
+| Integracao Stripe falhar | Media | Alto | Modo teste, webhooks com retry, fallback para pagamento manual |
+| WhatsApp API com limitacoes | Media | Medio | Usar provedor intermediario, fallback para email/SMS |
+
+## Recomendacoes de Equipe
+
+### Equipe Minima (3 pessoas)
+
+| Papel | Responsabilidades |
+|-------|------------------|
+| **Backend/Lead** | NestJS, Prisma, API, arquitetura, code review |
+| **Frontend** | Next.js, React, Tailwind, UX, responsividade |
+| **DevOps/QA** | Docker, CI/CD, monitoramento, testes, deploy |
+
+### Equipe Ideal (5-6 pessoas)
+
+| Papel | Responsabilidades |
+|-------|------------------|
+| **Tech Lead** | Arquitetura, code review, decisoes tecnicas, mentoria |
+| **Backend Senior** | NestJS, Prisma, integracao Stripe, API, seguranca |
+| **Backend Pleno** | Modulos verticais, testes, DTOs, validacoes |
+| **Frontend Pleno** | Next.js, dashboards, formularios, UX |
+| **DevOps** | Docker, K8s, CI/CD, monitoramento, infraestrutura |
+| **QA** | Testes automatizados, E2E, testes manuais, documentacao |
+
+### Metodologia Recomendada
+
+- **Sprints de 2 semanas** com planning, daily e review
+- **Code review obrigatorio** para todo merge em main
+- **Feature branches** com PR para main
+- **Continuous Integration** com testes automatizados
+- **Deploy automatico** para staging apos merge em main
+- **Deploy manual** para producao apos QA em staging
+
+## Criterios de Done
+
+Uma funcionalidade e considerada pronta quando:
+
+1. Endpoint implementado com validacao de entrada (class-validator)
+2. Guards de tenant e roles aplicados corretamente
+3. Testes unitarios cobrindo casos principais (happy path + erros)
+4. Swagger documentado com descricao e exemplos
+5. Frontend com tela funcional (formulario/listagem/dashboard)
+6. Code review aprovado por pelo menos 1 desenvolvedor
+7. Sem regressao em testes existentes (CI verde)
+8. Documentacao atualizada se necessario
+
+## Estrategia de Deploy
+
+| Fase | Ambiente | Estrategia |
 |------|----------|-----------|
-| Desenvolvimento | Local | Docker Compose com hot reload |
-| Testes | CI/CD | GitHub Actions com banco efêmero |
-| Staging | Cloud | Docker Compose em VM dedicada |
-| Produção | Cloud | Blue/Green deployment com rollback automático |
+| Desenvolvimento | Local | Docker Compose com hot reload e bind mounts |
+| Testes | CI/CD | GitHub Actions com banco efemero e container de teste |
+| Staging | Cloud | Docker Compose em VM dedicada ou ECS |
+| Producao | Cloud | Blue/Green deployment em EKS com rollback automatico |
 
-## Métricas de Acompanhamento
+### Checklist de Deploy para Producao
 
-| Métrica | Meta | Ferramenta |
+- [ ] Trocar todas as senhas padrao (banco, MinIO, Grafana)
+- [ ] Gerar JWT_SECRET forte (256+ bits)
+- [ ] Configurar HTTPS com certificado TLS valido
+- [ ] Configurar CORS apenas para dominios de producao
+- [ ] Habilitar rate limiting no Nginx
+- [ ] Configurar backups automaticos do PostgreSQL
+- [ ] Configurar alertas no Grafana/Prometheus
+- [ ] Executar migrations e seed em producao
+- [ ] Validar health checks de todos os servicos
+- [ ] Realizar teste de carga basico
+- [ ] Verificar logs de auditoria funcionando
+- [ ] Configurar DNS e certificado SSL
+
+## Metricas de Acompanhamento
+
+| Metrica | Meta | Ferramenta |
 |---------|------|-----------|
-| Cobertura de testes | > 70% | Jest + Coverage |
+| Cobertura de testes | > 70% | Jest + Istanbul |
 | Tempo de resposta P95 | < 500ms | Prometheus + Grafana |
 | Uptime | > 99.5% | Health check + alertas |
-| Bugs em produção | < 5/mês | Issue tracker |
-| Lead time (commit → deploy) | < 30min | GitHub Actions |
-| Satisfação do usuário | > 4.0/5.0 | Feedback in-app |
+| Bugs em producao | < 5/mes | Issue tracker (GitHub Issues) |
+| Lead time (commit -> deploy) | < 30min | GitHub Actions |
+| Taxa de erro (5xx) | < 1% | Prometheus |
+| Satisfacao do usuario | > 4.0/5.0 | Feedback in-app |
+
+## Estimativa de Custos (Infraestrutura Producao)
+
+| Servico | Estimativa Mensal | Provedor |
+|---------|:-----------------:|----------|
+| VM/Servidor (2vCPU, 4GB RAM) | R$ 150-300 | AWS/DigitalOcean/Hetzner |
+| PostgreSQL gerenciado | R$ 100-200 | RDS/Supabase |
+| Redis gerenciado | R$ 50-100 | ElastiCache/Upstash |
+| Armazenamento S3 (50GB) | R$ 10-20 | S3/Cloudflare R2 |
+| Dominio + SSL | R$ 50/ano | Registro.br + Let's Encrypt |
+| **Total estimado** | **R$ 350-650/mes** | |
+
+Nota: Custos podem variar conforme o provedor e o volume de uso. Para MVP, uma unica VM com Docker Compose e suficiente.
