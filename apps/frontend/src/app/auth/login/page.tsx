@@ -3,24 +3,25 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, setAuth } from '@/lib/api';
-import { Building2, Stethoscope, HardHat } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ email: '', password: '', tenantSlug: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
+      const body: Record<string, string> = { email: form.email, password: form.password };
+      if (form.tenantSlug) body.tenantSlug = form.tenantSlug;
+
       const response = await api('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(body),
       });
       setAuth(response.access_token, response.user);
       router.push('/dashboard');
@@ -29,11 +30,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const quickLogin = (loginEmail: string) => {
-    setEmail(loginEmail);
-    setPassword('Admin@123');
   };
 
   return (
@@ -55,37 +51,50 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input-field" placeholder="seu@email.com" required />
+              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input-field" placeholder="seu@email.com" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Senha</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="input-field" placeholder="------" required />
+              <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="input-field" placeholder="------" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Tenant (opcional)</label>
+              <input type="text" placeholder="slug-do-tenant" value={form.tenantSlug || ''} onChange={(e) => setForm({ ...form, tenantSlug: e.target.value })} className="input-field" />
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-[var(--border)]">
-            <p className="text-xs text-[var(--text-muted)] mb-3 font-medium">Acesso rapido (demo):</p>
-            <div className="grid grid-cols-1 gap-2">
-              <button onClick={() => quickLogin('admin@vertix.com')} className="flex items-center gap-2 text-xs p-2 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-tertiary)] transition-colors text-left">
-                <div className="w-6 h-6 bg-violet-100 dark:bg-violet-950 rounded flex items-center justify-center"><Building2 size={12} className="text-violet-600 dark:text-violet-400" /></div>
-                <div><span className="font-medium text-[var(--text-primary)]">Super Admin</span> <span className="text-[var(--text-muted)]">admin@vertix.com</span></div>
-              </button>
-              <button onClick={() => quickLogin('admin@clinica.com')} className="flex items-center gap-2 text-xs p-2 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-tertiary)] transition-colors text-left">
-                <div className="w-6 h-6 bg-brand-100 dark:bg-brand-950 rounded flex items-center justify-center"><Stethoscope size={12} className="text-brand-600 dark:text-brand-400" /></div>
-                <div><span className="font-medium text-[var(--text-primary)]">Admin Clinica</span> <span className="text-[var(--text-muted)]">admin@clinica.com</span></div>
-              </button>
-              <button onClick={() => quickLogin('admin@construtora.com')} className="flex items-center gap-2 text-xs p-2 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-tertiary)] transition-colors text-left">
-                <div className="w-6 h-6 bg-amber-100 dark:bg-amber-950 rounded flex items-center justify-center"><HardHat size={12} className="text-amber-600 dark:text-amber-400" /></div>
-                <div><span className="font-medium text-[var(--text-primary)]">Admin Construcao</span> <span className="text-[var(--text-muted)]">admin@construtora.com</span></div>
-              </button>
+          {/* Quick login buttons for all 9 demo tenants */}
+          <div className="mt-6 space-y-2">
+            <p className="text-xs text-[var(--text-muted)] text-center">Acesso rapido (demo)</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: 'Super Admin', email: 'admin@vertix.com' },
+                { label: 'Clinica', email: 'admin@clinica.com' },
+                { label: 'Construcao', email: 'admin@construtora.com' },
+                { label: 'Barbearia', email: 'admin@barbearia.com' },
+                { label: 'Imobiliaria', email: 'admin@imobiliaria.com' },
+                { label: 'Nutricao', email: 'admin@nutrivida.com' },
+                { label: 'Juridico', email: 'admin@silvaadv.com' },
+                { label: 'Restaurante', email: 'admin@sabor.com' },
+                { label: 'Estetica', email: 'admin@belle.com' },
+                { label: 'Dentista', email: 'admin@odonto.com' },
+              ].map((demo) => (
+                <button
+                  key={demo.email}
+                  type="button"
+                  onClick={() => { setForm({ email: demo.email, password: 'Admin@123', tenantSlug: '' }); }}
+                  className="py-1.5 px-2 text-xs rounded-lg border border-[var(--border)] hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 text-[var(--text-secondary)] transition-all"
+                >
+                  {demo.label}
+                </button>
+              ))}
             </div>
-            <p className="text-xs text-[var(--text-muted)] mt-2 text-center">Senha: Admin@123</p>
           </div>
         </div>
       </div>
