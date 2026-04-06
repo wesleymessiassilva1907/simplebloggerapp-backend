@@ -16,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={inter.className}>
+        <a href="#main-content" className="skip-nav">Pular para conteudo principal</a>
         <ThemeProvider>
           <ToastProvider>
             <ErrorBoundary>
