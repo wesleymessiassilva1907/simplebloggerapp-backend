@@ -4,7 +4,12 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/ui/StatsCard';
 import { api } from '@/lib/api';
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils';
-import { Building, Home, Key, DollarSign, MapPin, Handshake, Eye, TrendingUp } from 'lucide-react';
+import { Building, Home, Handshake, DollarSign, Clock, TrendingUp, Eye, PercentIcon } from 'lucide-react';
+import { BarChart as BarChartComponent } from '@/components/charts/BarChart';
+import { PieChart as PieChartComponent } from '@/components/charts/PieChart';
+import { TrendIndicator } from '@/components/charts/TrendIndicator';
+import { AlertCard } from '@/components/charts/AlertCard';
+import { RankingList } from '@/components/charts/RankingList';
 
 export default function RealEstateDashboardPage() {
   const [stats, setStats] = useState<any>(null);
@@ -25,7 +30,41 @@ export default function RealEstateDashboardPage() {
     });
   }, []);
 
-  if (loading) return <DashboardLayout><div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500"></div></div></DashboardLayout>;
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const dealsByMonth: { name: string; value: number }[] = (stats?.dealsByMonth || []).map((d: any) => ({
+    name: d.name || d.month || '',
+    value: d.value || d.count || 0,
+  }));
+
+  const statusBreakdown: { name: string; value: number }[] = (stats?.statusBreakdown || []).map((s: any) => ({
+    name: s.name || s.status || '',
+    value: s.value || s.count || 0,
+  }));
+
+  const topProperties: { name: string; value: number; subtitle?: string; percent?: number }[] = (stats?.topProperties || []).map((p: any) => ({
+    name: p.name || p.title || '',
+    value: p.value || p.price || 0,
+    subtitle: p.subtitle || p.location || '',
+    percent: p.percent,
+  }));
+
+  const alerts: { type: string; message: string }[] = (stats?.alerts || []).map((a: any) => ({
+    type: a.type || 'warning',
+    message: a.message || '',
+  }));
+
+  const comparisonPortfolio = stats?.comparisonVsLastMonth?.portfolioValue ?? null;
+  const comparisonComissao = stats?.comparisonVsLastMonth?.totalCommission ?? null;
+  const comparisonTempo = stats?.comparisonVsLastMonth?.avgDaysOnMarket ?? null;
 
   return (
     <DashboardLayout>
@@ -35,14 +74,45 @@ export default function RealEstateDashboardPage() {
           <p className="text-[var(--text-muted)] mt-1">Visao geral do portfolio imobiliario</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           <StatsCard title="Total Imoveis" value={stats?.totalProperties || 0} icon={<Building size={24} />} color="brand" />
           <StatsCard title="Disponiveis" value={stats?.availableProperties || 0} icon={<Home size={24} />} color="violet" />
           <StatsCard title="Vendidos" value={stats?.soldProperties || 0} icon={<Handshake size={24} />} color="brand" />
-          <StatsCard title="Alugados" value={stats?.rentedProperties || 0} icon={<Key size={24} />} color="amber" />
-          <StatsCard title="Valor Portfolio" value={formatCurrency(Number(stats?.portfolioValue || 0))} icon={<DollarSign size={24} />} color="brand" />
+          <div>
+            <StatsCard title="Valor Portfolio" value={formatCurrency(Number(stats?.portfolioValue || 0))} icon={<DollarSign size={24} />} color="brand" />
+            {comparisonPortfolio !== null && <TrendIndicator value={comparisonPortfolio} label="vs mes anterior" suffix="%" />}
+          </div>
+          <StatsCard title="Comissao Total" value={formatCurrency(Number(stats?.totalCommission || 0))} icon={<PercentIcon size={24} />} color="amber" />
+          <div>
+            <StatsCard title="Tempo Medio Mercado" value={`${stats?.avgDaysOnMarket || 0} dias`} icon={<Clock size={24} />} color="violet" />
+            {comparisonTempo !== null && <TrendIndicator value={comparisonTempo} label="vs mes anterior" suffix="%" />}
+          </div>
         </div>
 
+        {/* Alerts */}
+        {alerts.length > 0 && (
+          <AlertCard alerts={alerts} title="Alertas Imobiliarios" />
+        )}
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="card">
+            <BarChartComponent data={dealsByMonth} title="Negocios por Mes (Ultimos 6)" color="#6366f1" />
+          </div>
+          <div className="card">
+            <PieChartComponent data={statusBreakdown} title="Status dos Imoveis" />
+          </div>
+        </div>
+
+        {/* Ranking */}
+        {topProperties.length > 0 && (
+          <div className="card">
+            <RankingList items={topProperties} title="Top Imoveis por Valor" />
+          </div>
+        )}
+
+        {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Ultimas Visitas */}
           <div className="card">
@@ -84,8 +154,13 @@ export default function RealEstateDashboardPage() {
                     <p className="text-xs text-[var(--text-muted)]">{deal.client?.name || 'Cliente'} - {formatDate(deal.closedAt || deal.createdAt)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-[var(--text-primary)]">{formatCurrency(Number(deal.value || deal.amount))}</p>
-                    <span className={`text-xs ${deal.status === 'closed' ? 'text-blue-500' : deal.status === 'negotiation' ? 'text-amber-500' : deal.status === 'lost' ? 'text-rose-500' : 'text-brand-500'}`}>{deal.status}</span>
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">{formatCurrency(Number(deal.value || deal.amount || 0))}</p>
+                    <span className={`text-xs ${
+                      deal.status === 'closed' ? 'text-blue-500' :
+                      deal.status === 'negotiation' ? 'text-amber-500' :
+                      deal.status === 'lost' ? 'text-rose-500' :
+                      'text-brand-500'
+                    }`}>{deal.status}</span>
                   </div>
                 </div>
               ))}

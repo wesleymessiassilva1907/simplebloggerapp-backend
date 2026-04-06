@@ -55,17 +55,144 @@ export class ClinicBillingService {
   }
 
   async getDashboard(tenantId: string) {
-    const [totalPatients, todayAppointments, pendingBillings, totalRevenue] = await Promise.all([
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [
+      totalPatients,
+      todayAppointments,
+      pendingBillings,
+      totalRevenue,
+      thisMonthRevenue,
+      lastMonthRevenue,
+      overdueBillings,
+      paidBillingsLast30,
+      allAppointmentsThisMonth,
+      canceledAppointmentsThisMonth,
+      newPatientsThisMonth,
+      appointmentsWithDoctors,
+      billingsByStatus,
+    ] = await Promise.all([
       this.prisma.clinicPatient.count({ where: { tenantId } }),
       this.prisma.clinicAppointment.count({
-        where: {
-          tenantId,
-          appointmentDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)), lt: new Date(new Date().setHours(23, 59, 59, 999)) },
-        },
+        where: { tenantId, appointmentDate: { gte: todayStart, lt: todayEnd } },
       }),
       this.prisma.clinicBilling.count({ where: { tenantId, status: 'pending' } }),
       this.prisma.clinicBilling.aggregate({ where: { tenantId, status: 'paid' }, _sum: { amount: true } }),
+      this.prisma.clinicBilling.aggregate({
+        where: { tenantId, status: 'paid', paidAt: { gte: thisMonthStart, lt: thisMonthEnd } },
+        _sum: { amount: true },
+      }),
+      this.prisma.clinicBilling.aggregate({
+        where: { tenantId, status: 'paid', paidAt: { gte: lastMonthStart, lt: lastMonthEnd } },
+        _sum: { amount: true },
+      }),
+      this.prisma.clinicBilling.findMany({
+        where: { tenantId, status: 'overdue' },
+        include: { patient: { select: { name: true } } },
+        take: 10,
+        orderBy: { dueDate: 'asc' },
+      }),
+      this.prisma.clinicBilling.findMany({
+        where: { tenantId, status: 'paid', paidAt: { gte: thirtyDaysAgo } },
+        select: { amount: true, paidAt: true },
+      }),
+      this.prisma.clinicAppointment.count({
+        where: { tenantId, appointmentDate: { gte: thisMonthStart, lt: thisMonthEnd } },
+      }),
+      this.prisma.clinicAppointment.count({
+        where: { tenantId, status: 'canceled', appointmentDate: { gte: thisMonthStart, lt: thisMonthEnd } },
+      }),
+      this.prisma.clinicPatient.count({
+        where: { tenantId, createdAt: { gte: thisMonthStart, lt: thisMonthEnd } },
+      }),
+      this.prisma.clinicAppointment.findMany({
+        where: { tenantId, appointmentDate: { gte: thisMonthStart, lt: thisMonthEnd } },
+        select: { doctorId: true, doctor: { select: { name: true } } },
+      }),
+      this.prisma.clinicBilling.groupBy({
+        by: ['status'],
+        where: { tenantId },
+        _count: { id: true },
+      }),
     ]);
-    return { totalPatients, todayAppointments, pendingBillings, totalRevenue: totalRevenue._sum.amount || 0 };
+
+    // Revenue by day (last 30 days)
+    const revenueByDayMap: Record<string, number> = {};
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      revenueByDayMap[d.toISOString().slice(0, 10)] = 0;
+    }
+    for (const b of paidBillingsLast30) {
+      if (b.paidAt) {
+        const key = b.paidAt.toISOString().slice(0, 10);
+        if (revenueByDayMap[key] !== undefined) {
+          revenueByDayMap[key] += Number(b.amount);
+        }
+      }
+    }
+    const revenueByDay = Object.entries(revenueByDayMap).map(([date, value]) => ({ date, value }));
+
+    // Comparison vs last month
+    const currentMonthRev = Number(thisMonthRevenue._sum.amount || 0);
+    const previousMonthRev = Number(lastMonthRevenue._sum.amount || 0);
+    const comparisonVsLastMonth = {
+      current: currentMonthRev,
+      previous: previousMonthRev,
+      percentChange: previousMonthRev > 0 ? Math.round(((currentMonthRev - previousMonthRev) / previousMonthRev) * 100) : 0,
+    };
+
+    // Alerts
+    const alerts: { type: 'critical' | 'warning' | 'info'; message: string }[] = [];
+    if (overdueBillings.length > 0) {
+      alerts.push({ type: 'critical', message: `${overdueBillings.length} overdue billing(s) require attention` });
+    }
+    if (pendingBillings > 10) {
+      alerts.push({ type: 'warning', message: `${pendingBillings} pending billings awaiting payment` });
+    }
+    if (newPatientsThisMonth > 0) {
+      alerts.push({ type: 'info', message: `${newPatientsThisMonth} new patient(s) registered this month` });
+    }
+
+    // Top doctors by appointment count
+    const doctorCountMap: Record<string, { name: string; count: number }> = {};
+    for (const appt of appointmentsWithDoctors) {
+      if (!doctorCountMap[appt.doctorId]) {
+        doctorCountMap[appt.doctorId] = { name: appt.doctor.name, count: 0 };
+      }
+      doctorCountMap[appt.doctorId].count++;
+    }
+    const topDoctors = Object.values(doctorCountMap)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+      .map((d) => ({ name: d.name, value: d.count, subtitle: 'appointments this month' }));
+
+    // Status breakdown
+    const statusBreakdown = billingsByStatus.map((s) => ({ name: s.status, value: s._count.id }));
+
+    // No-show rate
+    const noShowRate = allAppointmentsThisMonth > 0
+      ? Math.round((canceledAppointmentsThisMonth / allAppointmentsThisMonth) * 100)
+      : 0;
+
+    return {
+      totalPatients,
+      todayAppointments,
+      pendingBillings,
+      totalRevenue: totalRevenue._sum.amount || 0,
+      revenueByDay,
+      comparisonVsLastMonth,
+      alerts,
+      topDoctors,
+      statusBreakdown,
+      noShowRate,
+      newPatientsThisMonth,
+    };
   }
 }
