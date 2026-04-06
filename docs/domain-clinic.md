@@ -2,7 +2,7 @@
 
 ## Visao Geral
 
-O modulo de Clinica Medica do NexusHub e um vertical especializado para gestao completa de clinicas medicas e consultorios. Ele abrange o ciclo completo de atendimento: desde o cadastro do paciente ate o faturamento da consulta, passando por agendamento, atendimento e prontuario medico.
+O modulo de Clinica Medica do Vertix e um vertical especializado para gestao completa de clinicas medicas e consultorios. Ele abrange o ciclo completo de atendimento: desde o cadastro do paciente ate o faturamento da consulta, passando por agendamento, atendimento e prontuario medico.
 
 ## Entidades
 

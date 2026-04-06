@@ -1,8 +1,8 @@
-# Plano de Implementacao - NexusHub
+# Plano de Implementacao - Vertix
 
 ## Visao Geral
 
-Este documento detalha a ordem de desenvolvimento, prioridades, riscos, definicao de MVP por vertical e recomendacoes de equipe para o NexusHub.
+Este documento detalha a ordem de desenvolvimento, prioridades, riscos, definicao de MVP por vertical e recomendacoes de equipe para o Vertix.
 
 ## Ordem de Desenvolvimento
 

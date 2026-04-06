@@ -17,14 +17,14 @@ import { clearAuth } from '@/lib/api';
 type ModuleKey = 'clinic' | 'construction' | 'barbershop' | 'realestate' | 'nutrition' | 'legal' | 'restaurant' | 'aesthetic' | 'dental';
 
 const modules: { key: ModuleKey; label: string }[] = [
-  { key: 'clinic', label: 'Clínica' },
-  { key: 'construction', label: 'Construção' },
+  { key: 'clinic', label: 'Clinica' },
+  { key: 'construction', label: 'Construcao' },
   { key: 'barbershop', label: 'Barbearia' },
-  { key: 'realestate', label: 'Imobiliária' },
-  { key: 'nutrition', label: 'Nutrição' },
-  { key: 'legal', label: 'Jurídico' },
+  { key: 'realestate', label: 'Imobiliaria' },
+  { key: 'nutrition', label: 'Nutricao' },
+  { key: 'legal', label: 'Juridico' },
   { key: 'restaurant', label: 'Restaurante' },
-  { key: 'aesthetic', label: 'Estética' },
+  { key: 'aesthetic', label: 'Estetica' },
   { key: 'dental', label: 'Dentista' },
 ];
 
@@ -32,9 +32,9 @@ const menus: Record<ModuleKey, { name: string; href: string; icon: any }[]> = {
   clinic: [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Pacientes', href: '/clinic/patients', icon: Users },
-    { name: 'Médicos', href: '/clinic/doctors', icon: Stethoscope },
+    { name: 'Medicos', href: '/clinic/doctors', icon: Stethoscope },
     { name: 'Agenda', href: '/clinic/appointments', icon: Calendar },
-    { name: 'Prontuários', href: '/clinic/records', icon: FileText },
+    { name: 'Prontuarios', href: '/clinic/records', icon: FileText },
     { name: 'Faturamento', href: '/clinic/billing', icon: DollarSign },
   ],
   construction: [
@@ -49,22 +49,22 @@ const menus: Record<ModuleKey, { name: string; href: string; icon: any }[]> = {
     { name: 'Agendamentos', href: '/barbershop/bookings', icon: Calendar },
     { name: 'Barbeiros', href: '/barbershop/barbers', icon: Scissors },
     { name: 'Clientes', href: '/barbershop/clients', icon: UserCheck },
-    { name: 'Serviços', href: '/barbershop/services', icon: ClipboardList },
+    { name: 'Servicos', href: '/barbershop/services', icon: ClipboardList },
     { name: 'Produtos', href: '/barbershop/products', icon: Package },
     { name: 'Comandas', href: '/barbershop/orders', icon: ShoppingBag },
   ],
   realestate: [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Imóveis', href: '/realestate/properties', icon: Home },
+    { name: 'Imoveis', href: '/realestate/properties', icon: Home },
     { name: 'Clientes', href: '/realestate/clients', icon: Users },
     { name: 'Visitas', href: '/realestate/visits', icon: Calendar },
-    { name: 'Negócios', href: '/realestate/deals', icon: Briefcase },
+    { name: 'Negocios', href: '/realestate/deals', icon: Briefcase },
   ],
   nutrition: [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Pacientes', href: '/nutrition/patients', icon: Users },
     { name: 'Planos', href: '/nutrition/plans', icon: Salad },
-    { name: 'Refeições', href: '/nutrition/meals', icon: Apple },
+    { name: 'Refeicoes', href: '/nutrition/meals', icon: Apple },
     { name: 'Consultas', href: '/nutrition/appointments', icon: Calendar },
     { name: 'Medidas', href: '/nutrition/measurements', icon: Scale },
   ],
@@ -79,7 +79,7 @@ const menus: Record<ModuleKey, { name: string; href: string; icon: any }[]> = {
   restaurant: [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Categorias', href: '/restaurant/categories', icon: BookOpen },
-    { name: 'Cardápio', href: '/restaurant/menu-items', icon: UtensilsCrossed },
+    { name: 'Cardapio', href: '/restaurant/menu-items', icon: UtensilsCrossed },
     { name: 'Pedidos', href: '/restaurant/orders', icon: ClipboardList },
     { name: 'Entregadores', href: '/restaurant/drivers', icon: Truck },
   ],
@@ -116,12 +116,12 @@ export default function Sidebar() {
 
   return (
     <aside className={cn(
-      'h-screen bg-secondary-900 text-white flex flex-col transition-all duration-300',
+      'h-screen bg-[var(--sidebar-bg)] text-white flex flex-col transition-all duration-300',
       collapsed ? 'w-16' : 'w-64'
     )}>
-      <div className="flex items-center justify-between p-4 border-b border-secondary-700">
-        {!collapsed && <h1 className="text-xl font-bold text-primary-400">Vertix</h1>}
-        <button onClick={() => setCollapsed(!collapsed)} className="p-1 rounded hover:bg-secondary-700">
+      <div className="flex items-center justify-between p-4 border-b border-brand-900/30 dark:border-surface-800">
+        {!collapsed && <h1 className="text-xl font-bold bg-gradient-to-r from-brand-400 to-violet-400 bg-clip-text text-transparent">Vertix</h1>}
+        <button onClick={() => setCollapsed(!collapsed)} className="p-1 rounded hover:bg-[var(--sidebar-hover)]">
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
       </div>
@@ -131,7 +131,7 @@ export default function Sidebar() {
           <select
             value={module}
             onChange={(e) => setModule(e.target.value as ModuleKey)}
-            className="w-full bg-secondary-700 text-white text-sm rounded-lg px-3 py-2 border border-secondary-600 focus:border-primary-500 focus:outline-none"
+            className="w-full bg-brand-900/50 text-white text-sm rounded-lg px-3 py-2 border border-brand-800/50 focus:border-brand-500 focus:outline-none"
           >
             {modules.map((m) => (
               <option key={m.key} value={m.key}>{m.label}</option>
@@ -149,7 +149,7 @@ export default function Sidebar() {
               href={item.href}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                isActive ? 'bg-primary-600 text-white' : 'text-gray-300 hover:bg-secondary-700 hover:text-white'
+                isActive ? 'bg-[var(--sidebar-active)] text-white' : 'text-gray-300 hover:bg-[var(--sidebar-hover)] hover:text-white'
               )}
               title={collapsed ? item.name : undefined}
             >
@@ -160,10 +160,10 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-3 border-t border-secondary-700 space-y-1">
+      <div className="p-3 border-t border-brand-900/30 dark:border-surface-800 space-y-1">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-secondary-700 hover:text-white w-full transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-[var(--sidebar-hover)] hover:text-white w-full transition-colors"
         >
           <LogOut size={20} />
           {!collapsed && <span>Sair</span>}

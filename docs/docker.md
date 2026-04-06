@@ -1,8 +1,8 @@
-# Guia Docker - NexusHub
+# Guia Docker - Vertix
 
 ## Visao Geral
 
-O NexusHub utiliza Docker e Docker Compose para orquestrar todos os servicos da plataforma. O arquivo `docker-compose.yml` na raiz do projeto define 8 servicos que trabalham juntos em uma rede Docker compartilhada.
+O Vertix utiliza Docker e Docker Compose para orquestrar todos os servicos da plataforma. O arquivo `docker-compose.yml` na raiz do projeto define 8 servicos que trabalham juntos em uma rede Docker compartilhada.
 
 ## Servicos
 
@@ -151,7 +151,7 @@ volumes:
 
 ## Rede Docker
 
-Todos os servicos compartilham a rede `nexushub-network` (driver: bridge). A comunicacao interna entre containers usa os nomes dos servicos como hostname:
+Todos os servicos compartilham a rede `vertix-network` (driver: bridge). A comunicacao interna entre containers usa os nomes dos servicos como hostname:
 
 ```
 Comunicacao Interna:
@@ -198,17 +198,17 @@ cp .env.example .env
 
 | Variavel | Valor Padrao | Descricao |
 |----------|-------------|-----------|
-| DATABASE_URL | postgresql://nexushub:nexushub_dev_pass@postgres:5432/nexushub?schema=public | URL de conexao |
-| POSTGRES_USER | nexushub | Usuario do PostgreSQL |
-| POSTGRES_PASSWORD | nexushub_dev_pass | Senha do PostgreSQL |
-| POSTGRES_DB | nexushub | Nome do banco |
+| DATABASE_URL | postgresql://vertix:vertix_dev_pass@postgres:5432/vertix?schema=public | URL de conexao |
+| POSTGRES_USER | vertix | Usuario do PostgreSQL |
+| POSTGRES_PASSWORD | vertix_dev_pass | Senha do PostgreSQL |
+| POSTGRES_DB | vertix | Nome do banco |
 | POSTGRES_PORT | 5432 | Porta do PostgreSQL |
 
 ### Autenticacao
 
 | Variavel | Valor Padrao | Descricao |
 |----------|-------------|-----------|
-| JWT_SECRET | nexushub-dev-jwt-secret-change-in-production | Chave secreta JWT |
+| JWT_SECRET | vertix-dev-jwt-secret-change-in-production | Chave secreta JWT |
 | JWT_EXPIRATION | 24h | Expiracao do access token |
 | JWT_REFRESH_EXPIRATION | 7d | Expiracao do refresh token |
 | BCRYPT_ROUNDS | 10 | Rounds do bcrypt para hash de senha |
@@ -225,21 +225,21 @@ cp .env.example .env
 
 | Variavel | Valor Padrao | Descricao |
 |----------|-------------|-----------|
-| MINIO_ROOT_USER | nexushub_minio | Usuario root do MinIO |
-| MINIO_ROOT_PASSWORD | nexushub_minio_secret | Senha root do MinIO |
+| MINIO_ROOT_USER | vertix_minio | Usuario root do MinIO |
+| MINIO_ROOT_PASSWORD | vertix_minio_secret | Senha root do MinIO |
 | MINIO_ENDPOINT | minio | Hostname do MinIO |
 | MINIO_PORT | 9000 | Porta da API |
 | MINIO_USE_SSL | false | SSL habilitado |
-| MINIO_BUCKET | nexushub-uploads | Nome do bucket |
-| MINIO_ACCESS_KEY | nexushub_minio | Access key |
-| MINIO_SECRET_KEY | nexushub_minio_secret | Secret key |
+| MINIO_BUCKET | vertix-uploads | Nome do bucket |
+| MINIO_ACCESS_KEY | vertix_minio | Access key |
+| MINIO_SECRET_KEY | vertix_minio_secret | Secret key |
 
 ### Frontend
 
 | Variavel | Valor Padrao | Descricao |
 |----------|-------------|-----------|
 | NEXT_PUBLIC_API_URL | http://localhost:8080/api | URL da API para o frontend |
-| NEXT_PUBLIC_APP_NAME | NexusHub | Nome da aplicacao |
+| NEXT_PUBLIC_APP_NAME | Vertix | Nome da aplicacao |
 | NEXT_PUBLIC_APP_URL | http://localhost:8080 | URL da aplicacao |
 
 ### Monitoramento
@@ -297,7 +297,7 @@ Todos os servicos criticos possuem health checks configurados:
 
 | Servico | Comando de Verificacao | Intervalo | Timeout | Retries |
 |---------|----------------------|:---------:|:-------:|:-------:|
-| postgres | `pg_isready -U nexushub` | 10s | 5s | 5 |
+| postgres | `pg_isready -U vertix` | 10s | 5s | 5 |
 | redis | `redis-cli ping` | 10s | 5s | 5 |
 | minio | `mc ready local` | 30s | 10s | 3 |
 | backend | `wget --spider http://localhost:3001/api/health` | 30s | 10s | 3 |

@@ -5,29 +5,30 @@ interface StatsCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
-  color?: 'blue' | 'green' | 'yellow' | 'red' | 'purple';
+  color?: 'blue' | 'brand' | 'amber' | 'rose' | 'violet' | 'cyan';
   subtitle?: string;
 }
 
 const colorMap = {
-  blue: 'bg-blue-50 text-blue-600',
-  green: 'bg-green-50 text-green-600',
-  yellow: 'bg-yellow-50 text-yellow-600',
-  red: 'bg-red-50 text-red-600',
-  purple: 'bg-purple-50 text-purple-600',
+  blue: 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400',
+  brand: 'bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-400',
+  amber: 'bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400',
+  rose: 'bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400',
+  violet: 'bg-violet-50 text-violet-600 dark:bg-violet-950 dark:text-violet-400',
+  cyan: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-950 dark:text-cyan-400',
 };
 
-export default function StatsCard({ title, value, icon: Icon, color = 'blue', subtitle }: StatsCardProps) {
+export default function StatsCard({ title, value, icon: Icon, color = 'brand', subtitle }: StatsCardProps) {
   return (
     <div className="stat-card">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-medium text-gray-500">{title}</p>
+        <p className="text-sm font-medium text-[var(--text-secondary)]">{title}</p>
         <div className={cn('p-2 rounded-lg', colorMap[color])}>
           <Icon size={20} />
         </div>
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+      <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
+      {subtitle && <p className="text-xs text-[var(--text-muted)] mt-1">{subtitle}</p>}
     </div>
   );
 }

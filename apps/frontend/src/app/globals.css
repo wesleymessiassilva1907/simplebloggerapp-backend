@@ -3,28 +3,62 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-primary: #FAFAFA;
+    --bg-secondary: #FFFFFF;
+    --bg-tertiary: #F4F4F5;
+    --text-primary: #18181B;
+    --text-secondary: #52525B;
+    --text-muted: #A1A1AA;
+    --border: #E4E4E7;
+    --border-hover: #D4D4D8;
+    --ring: #6366F1;
+    --sidebar-bg: #1E1B4B;
+    --sidebar-text: #E0E7FF;
+    --sidebar-hover: #312E81;
+    --sidebar-active: #4F46E5;
+  }
+
+  .dark {
+    --bg-primary: #09090B;
+    --bg-secondary: #18181B;
+    --bg-tertiary: #27272A;
+    --text-primary: #FAFAFA;
+    --text-secondary: #A1A1AA;
+    --text-muted: #71717A;
+    --border: #3F3F46;
+    --border-hover: #52525B;
+    --ring: #818CF8;
+    --sidebar-bg: #09090B;
+    --sidebar-text: #E0E7FF;
+    --sidebar-hover: #1E1B4B;
+    --sidebar-active: #6366F1;
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    @apply antialiased transition-colors duration-200;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-gradient-to-r from-brand-500 to-violet-500 hover:from-brand-600 hover:to-violet-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-surface-900 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md;
   }
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg border border-gray-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] font-medium py-2 px-4 rounded-lg border border-[var(--border)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-surface-900;
   }
   .btn-danger {
-    @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+    @apply bg-rose-600 hover:bg-rose-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 dark:focus:ring-offset-surface-900;
   }
   .input-field {
-    @apply block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm;
+    @apply block w-full rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm transition-colors duration-200;
   }
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+    @apply bg-[var(--bg-secondary)] rounded-xl shadow-sm border border-[var(--border)] p-6 transition-colors duration-200;
   }
   .stat-card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col;
+    @apply bg-[var(--bg-secondary)] rounded-xl shadow-sm border border-[var(--border)] p-6 flex flex-col transition-colors duration-200 hover:shadow-md hover:border-brand-200 dark:hover:border-brand-800;
   }
 }

@@ -2,7 +2,7 @@
 
 ## Visao Geral
 
-O modulo de Construcao Civil do NexusHub e um vertical especializado para gestao de obras e projetos de construcao. Ele permite o controle completo de projetos, tarefas, despesas, trabalhadores e alocacao de equipes, com dashboards de acompanhamento de orcamento versus realizado.
+O modulo de Construcao Civil do Vertix e um vertical especializado para gestao de obras e projetos de construcao. Ele permite o controle completo de projetos, tarefas, despesas, trabalhadores e alocacao de equipes, com dashboards de acompanhamento de orcamento versus realizado.
 
 ## Entidades
 

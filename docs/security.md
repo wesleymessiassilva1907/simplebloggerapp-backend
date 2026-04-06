@@ -1,8 +1,8 @@
-# Seguranca - NexusHub
+# Seguranca - Vertix
 
 ## Visao Geral
 
-O NexusHub implementa multiplas camadas de seguranca para proteger dados sensiveis de pacientes, informacoes financeiras de obras e garantir o isolamento completo entre tenants. Este documento detalha as medidas de seguranca implementadas e as recomendacoes para producao.
+O Vertix implementa multiplas camadas de seguranca para proteger dados sensiveis de pacientes, informacoes financeiras de obras e garantir o isolamento completo entre tenants. Este documento detalha as medidas de seguranca implementadas e as recomendacoes para producao.
 
 ## Autenticacao (JWT)
 
@@ -53,7 +53,7 @@ Isso garante que todo tenant tenha pelo menos um administrador desde a criacao.
 
 ### Sistema de Papeis
 
-O NexusHub utiliza RBAC (Role-Based Access Control) com papeis pre-definidos armazenados no banco de dados. Um usuario pode ter multiplos papeis.
+O Vertix utiliza RBAC (Role-Based Access Control) com papeis pre-definidos armazenados no banco de dados. Um usuario pode ter multiplos papeis.
 
 | Papel | Escopo | Descricao |
 |-------|--------|-----------|
@@ -298,14 +298,14 @@ add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 | **Redis** | Sem exposicao externa em producao, senha configuravel |
 | **MinIO** | Credenciais via variaveis de ambiente, buckets privados |
 | **Nginx** | Rate limiting, proxy reverso, sem exposicao direta do backend |
-| **Rede Docker** | Bridge network isolada (`nexushub-network`) |
+| **Rede Docker** | Bridge network isolada (`vertix-network`) |
 | **Volumes** | Dados persistentes isolados por servico |
 
 ## Health Checks de Seguranca
 
 ```yaml
 # PostgreSQL - verifica conectividade
-pg_isready -U nexushub
+pg_isready -U vertix
 
 # Redis - verifica disponibilidade
 redis-cli ping

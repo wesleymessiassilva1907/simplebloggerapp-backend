@@ -1,8 +1,8 @@
-# Roadmap - NexusHub
+# Roadmap - Vertix
 
 ## Visao Geral
 
-Plano de evolucao da plataforma NexusHub organizado em 3 fases ao longo de 90 dias, seguido de um backlog de longo prazo. Cada fase entrega valor incremental e pode ser validada com usuarios reais.
+Plano de evolucao da plataforma Vertix organizado em 3 fases ao longo de 90 dias, seguido de um backlog de longo prazo. Cada fase entrega valor incremental e pode ser validada com usuarios reais.
 
 ---
 
