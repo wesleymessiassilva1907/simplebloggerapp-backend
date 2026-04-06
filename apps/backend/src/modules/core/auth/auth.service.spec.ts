@@ -3,6 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException, ConflictException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PrismaService } from '@/common/prisma/prisma.service';
+
+jest.mock('bcrypt', () => ({
+  compare: jest.fn(),
+  hash: jest.fn(),
+}));
 import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
@@ -46,7 +51,7 @@ describe('AuthService', () => {
 
     it('should return token and user on valid credentials', async () => {
       prisma.user.findMany.mockResolvedValue([mockUser]);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       const result = await service.login(loginDto);
 
@@ -57,7 +62,7 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException on wrong password', async () => {
       prisma.user.findMany.mockResolvedValue([mockUser]);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(false));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
@@ -78,7 +83,7 @@ describe('AuthService', () => {
       const tenant = { id: 'tenant-1', slug: 'test-tenant' };
       prisma.tenant.findUnique.mockResolvedValue(tenant);
       prisma.user.findMany.mockResolvedValue([mockUser]);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       const result = await service.login({ ...loginDto, tenantSlug: 'test-tenant' });
 
