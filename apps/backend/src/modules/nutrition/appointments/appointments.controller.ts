@@ -17,6 +17,11 @@ import { PaginationDto } from '@/common/dto/pagination.dto';
 export class NutritionAppointmentsController {
   constructor(private readonly appointmentsService: NutritionAppointmentsService) {}
 
+  @Get('dashboard')
+  @Roles('tenant_admin', 'nutritionist')
+  @ApiOperation({ summary: 'Nutrition dashboard' })
+  getDashboard(@TenantId() tenantId: string) { return this.appointmentsService.getDashboard(tenantId); }
+
   @Get()
   @Roles('tenant_admin', 'nutritionist')
   @ApiOperation({ summary: 'List appointments' })

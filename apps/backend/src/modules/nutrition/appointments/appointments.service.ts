@@ -59,4 +59,21 @@ export class NutritionAppointmentsService {
     await this.findOne(id, tenantId);
     return this.prisma.nutritionAppointment.delete({ where: { id } });
   }
+
+  async getDashboard(tenantId: string) {
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const [totalPatients, todayAppointments, activePlans, recentMeasurements, monthlyAppointments] = await Promise.all([
+      this.prisma.nutritionPatient.count({ where: { tenantId } }),
+      this.prisma.nutritionAppointment.count({
+        where: { tenantId, appointmentDate: { gte: new Date(today.setHours(0,0,0,0)), lt: new Date(today.setHours(23,59,59,999)) } },
+      }),
+      this.prisma.nutritionPlan.count({ where: { tenantId, status: 'active' } }),
+      this.prisma.nutritionMeasurement.count({ where: { tenantId, date: { gte: startOfMonth } } }),
+      this.prisma.nutritionAppointment.count({ where: { tenantId, appointmentDate: { gte: startOfMonth } } }),
+    ]);
+
+    return { totalPatients, todayAppointments, activePlans, recentMeasurements, monthlyAppointments };
+  }
 }

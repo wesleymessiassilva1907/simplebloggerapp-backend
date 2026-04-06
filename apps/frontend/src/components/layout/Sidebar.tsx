@@ -9,7 +9,7 @@ import {
   LogOut, Scissors, ShoppingBag, UserCheck, Package, ClipboardList,
   Home, Heart, Apple, Scale, Gavel, FileSearch, UtensilsCrossed, Truck,
   Sparkles, Star, SmilePlus, Briefcase, BookOpen, Timer, Salad,
-  Ruler, Pill
+  Ruler, Pill, Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { clearAuth } from '@/lib/api';
@@ -30,7 +30,8 @@ const modules: { key: ModuleKey; label: string }[] = [
 
 const menus: Record<ModuleKey, { name: string; href: string; icon: any }[]> = {
   clinic: [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Visao Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/clinic/dashboard', icon: Activity },
     { name: 'Pacientes', href: '/clinic/patients', icon: Users },
     { name: 'Medicos', href: '/clinic/doctors', icon: Stethoscope },
     { name: 'Agenda', href: '/clinic/appointments', icon: Calendar },
@@ -38,14 +39,16 @@ const menus: Record<ModuleKey, { name: string; href: string; icon: any }[]> = {
     { name: 'Faturamento', href: '/clinic/billing', icon: DollarSign },
   ],
   construction: [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Visao Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/construction/dashboard', icon: Activity },
     { name: 'Projetos', href: '/construction/projects', icon: Building2 },
     { name: 'Tarefas', href: '/construction/tasks', icon: ListTodo },
     { name: 'Despesas', href: '/construction/expenses', icon: Receipt },
     { name: 'Equipe', href: '/construction/workers', icon: HardHat },
   ],
   barbershop: [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Visao Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/barbershop/dashboard', icon: Activity },
     { name: 'Agendamentos', href: '/barbershop/bookings', icon: Calendar },
     { name: 'Barbeiros', href: '/barbershop/barbers', icon: Scissors },
     { name: 'Clientes', href: '/barbershop/clients', icon: UserCheck },
@@ -54,14 +57,16 @@ const menus: Record<ModuleKey, { name: string; href: string; icon: any }[]> = {
     { name: 'Comandas', href: '/barbershop/orders', icon: ShoppingBag },
   ],
   realestate: [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Visao Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/realestate/dashboard', icon: Activity },
     { name: 'Imoveis', href: '/realestate/properties', icon: Home },
     { name: 'Clientes', href: '/realestate/clients', icon: Users },
     { name: 'Visitas', href: '/realestate/visits', icon: Calendar },
     { name: 'Negocios', href: '/realestate/deals', icon: Briefcase },
   ],
   nutrition: [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Visao Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/nutrition/dashboard', icon: Activity },
     { name: 'Pacientes', href: '/nutrition/patients', icon: Users },
     { name: 'Planos', href: '/nutrition/plans', icon: Salad },
     { name: 'Refeicoes', href: '/nutrition/meals', icon: Apple },
@@ -69,7 +74,8 @@ const menus: Record<ModuleKey, { name: string; href: string; icon: any }[]> = {
     { name: 'Medidas', href: '/nutrition/measurements', icon: Scale },
   ],
   legal: [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Visao Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/legal/dashboard', icon: Activity },
     { name: 'Clientes', href: '/legal/clients', icon: Users },
     { name: 'Processos', href: '/legal/cases', icon: Gavel },
     { name: 'Documentos', href: '/legal/documents', icon: FileSearch },
@@ -77,14 +83,16 @@ const menus: Record<ModuleKey, { name: string; href: string; icon: any }[]> = {
     { name: 'Financeiro', href: '/legal/billings', icon: DollarSign },
   ],
   restaurant: [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Visao Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/restaurant/dashboard', icon: Activity },
     { name: 'Categorias', href: '/restaurant/categories', icon: BookOpen },
     { name: 'Cardapio', href: '/restaurant/menu-items', icon: UtensilsCrossed },
     { name: 'Pedidos', href: '/restaurant/orders', icon: ClipboardList },
     { name: 'Entregadores', href: '/restaurant/drivers', icon: Truck },
   ],
   aesthetic: [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Visao Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/aesthetic/dashboard', icon: Activity },
     { name: 'Clientes', href: '/aesthetic/clients', icon: Users },
     { name: 'Procedimentos', href: '/aesthetic/procedures', icon: Sparkles },
     { name: 'Agendamentos', href: '/aesthetic/appointments', icon: Calendar },
@@ -92,7 +100,8 @@ const menus: Record<ModuleKey, { name: string; href: string; icon: any }[]> = {
     { name: 'Financeiro', href: '/aesthetic/billings', icon: DollarSign },
   ],
   dental: [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Visao Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/dental/dashboard', icon: Activity },
     { name: 'Pacientes', href: '/dental/patients', icon: Users },
     { name: 'Dentistas', href: '/dental/dentists', icon: SmilePlus },
     { name: 'Tratamentos', href: '/dental/treatments', icon: Pill },
