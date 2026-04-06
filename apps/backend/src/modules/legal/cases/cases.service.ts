@@ -87,12 +87,22 @@ export class LegalCasesService {
     const now = new Date();
     const in7Days = new Date();
     in7Days.setDate(in7Days.getDate() + 7);
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const [
       totalByStatus,
       upcomingHearings,
       overdueTasks,
       totalCases,
+      thisMonthCases,
+      lastMonthCases,
+      allCases,
+      allTasks,
+      thisMonthBillings,
+      hearingsThisWeek,
     ] = await Promise.all([
       this.prisma.legalCase.groupBy({
         by: ['status'],
@@ -117,13 +127,97 @@ export class LegalCasesService {
         },
       }),
       this.prisma.legalCase.count({ where: { tenantId } }),
+      this.prisma.legalCase.count({ where: { tenantId, createdAt: { gte: thisMonthStart, lt: thisMonthEnd } } }),
+      this.prisma.legalCase.count({ where: { tenantId, createdAt: { gte: lastMonthStart, lt: lastMonthEnd } } }),
+      this.prisma.legalCase.findMany({
+        where: { tenantId },
+        select: { id: true, title: true, value: true, status: true, createdAt: true, filingDate: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.legalTask.findMany({
+        where: { tenantId },
+        select: { status: true, dueDate: true },
+      }),
+      this.prisma.legalBilling.aggregate({
+        where: { tenantId, status: 'paid', paidAt: { gte: thisMonthStart, lt: thisMonthEnd } },
+        _sum: { amount: true },
+      }),
+      this.prisma.legalCase.count({
+        where: {
+          tenantId,
+          nextHearingDate: { gte: now, lte: in7Days },
+          status: { notIn: ['arquivado', 'encerrado'] },
+        },
+      }),
     ]);
+
+    // Cases by month (last 6 months)
+    const casesByMonth: { date: string; value: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const mStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+      const count = allCases.filter(c => c.createdAt >= mStart && c.createdAt < mEnd).length;
+      casesByMonth.push({ date: mStart.toISOString().slice(0, 7), value: count });
+    }
+
+    // Comparison vs last month
+    const comparisonVsLastMonth = {
+      current: thisMonthCases,
+      previous: lastMonthCases,
+      percentChange: lastMonthCases > 0 ? Math.round(((thisMonthCases - lastMonthCases) / lastMonthCases) * 100) : 0,
+    };
+
+    // Alerts
+    const alerts: { type: 'critical' | 'warning' | 'info'; message: string }[] = [];
+    if (overdueTasks > 0) {
+      alerts.push({ type: 'critical', message: `${overdueTasks} overdue task(s) require immediate attention` });
+    }
+    if (hearingsThisWeek > 0) {
+      alerts.push({ type: 'warning', message: `${hearingsThisWeek} hearing(s) scheduled this week` });
+    }
+    if (thisMonthCases > lastMonthCases && lastMonthCases > 0) {
+      alerts.push({ type: 'info', message: `New cases up ${comparisonVsLastMonth.percentChange}% vs last month` });
+    }
+
+    // Top cases by value
+    const topCases = allCases
+      .filter(c => c.value)
+      .sort((a, b) => Number(b.value) - Number(a.value))
+      .slice(0, 5)
+      .map(c => ({ name: c.title, value: Number(c.value), subtitle: c.status }));
+
+    // Status breakdown
+    const statusBreakdown = totalByStatus.map((s) => ({ name: s.status, value: s._count.id }));
+
+    // Average case duration (for closed cases)
+    const closedCases = allCases.filter(c => ['arquivado', 'encerrado', 'won', 'lost', 'settled'].includes(c.status) && c.filingDate);
+    const avgCaseDuration = closedCases.length > 0
+      ? Math.round(closedCases.reduce((sum, c) => {
+          const start = c.filingDate || c.createdAt;
+          return sum + (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+        }, 0) / closedCases.length)
+      : 0;
+
+    // Task completion rate
+    const completedTasksCount = allTasks.filter(t => t.status === 'concluida' || t.status === 'completed').length;
+    const taskCompletionRate = allTasks.length > 0 ? Math.round((completedTasksCount / allTasks.length) * 100) : 0;
+
+    // Total billing this month
+    const totalBillingThisMonth = Number(thisMonthBillings._sum.amount || 0);
 
     return {
       totalCases,
       casesByStatus: totalByStatus.map((s) => ({ status: s.status, count: s._count.id })),
       upcomingHearings,
       overdueTasks,
+      casesByMonth,
+      comparisonVsLastMonth,
+      alerts,
+      topCases,
+      statusBreakdown,
+      avgCaseDuration,
+      taskCompletionRate,
+      totalBillingThisMonth,
     };
   }
 }
