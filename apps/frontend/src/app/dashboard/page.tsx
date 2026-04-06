@@ -6,98 +6,154 @@ import StatsCard from '@/components/ui/StatsCard';
 import { api } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import {
-  Users, Stethoscope, Calendar, DollarSign,
-  Building2, ListTodo, Receipt, HardHat, Activity
+  Users, Calendar, DollarSign, Building2, Scissors, Home,
+  Apple, Gavel, UtensilsCrossed, Sparkles, SmilePlus, Activity
 } from 'lucide-react';
 
+interface DashboardData {
+  clinic?: { totalPatients: number; todayAppointments: number; pendingBillings: number; totalRevenue: number };
+  construction?: { totalProjects: number; activeProjects: number; totalBudget: number; totalExpenses: number; avgProgress: number };
+  [key: string]: any;
+}
+
 export default function DashboardPage() {
-  const [clinicStats, setClinicStats] = useState<any>(null);
-  const [constructionStats, setConstructionStats] = useState<any>(null);
+  const [data, setData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [clinic, construction] = await Promise.allSettled([
-          api('/clinic/billing/dashboard'),
-          api('/construction/projects/dashboard'),
-        ]);
-        if (clinic.status === 'fulfilled') setClinicStats(clinic.value);
-        if (construction.status === 'fulfilled') setConstructionStats(construction.value);
-      } catch (err) {
-        console.error('Dashboard error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    loadDashboard();
   }, []);
+
+  const loadDashboard = async () => {
+    try {
+      const results = await Promise.allSettled([
+        api('/clinic/billing/dashboard').catch(() => null),
+        api('/construction/projects/dashboard').catch(() => null),
+      ]);
+
+      const clinicResult = results[0].status === 'fulfilled' ? results[0].value : null;
+      const constructionResult = results[1].status === 'fulfilled' ? results[1].value : null;
+
+      setData({
+        clinic: clinicResult,
+        construction: constructionResult,
+      });
+    } catch (e) {
+      console.error('Dashboard load error:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Dashboard</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">Visão geral da plataforma</p>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Dashboard</h1>
+          <p className="text-[var(--text-muted)] mt-1">Visao geral da plataforma Vertix</p>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+          </div>
+        ) : (
+          <>
+            {/* Platform overview */}
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                <Activity size={20} className="text-brand-500" />
+                Visao Geral
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatsCard
+                  title="Modulos Ativos"
+                  value="9"
+                  icon={<Building2 size={24} />}
+                  color="brand"
+                />
+                <StatsCard
+                  title="Verticais"
+                  value="Multi-Vertical"
+                  icon={<Activity size={24} />}
+                  color="violet"
+                />
+                <StatsCard
+                  title="Status"
+                  value="Operacional"
+                  icon={<Activity size={24} />}
+                  color="cyan"
+                />
+                <StatsCard
+                  title="Plano"
+                  value="Professional"
+                  icon={<DollarSign size={24} />}
+                  color="amber"
+                />
+              </div>
+            </div>
+
+            {/* Clinic stats */}
+            {data.clinic && (
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <Users size={20} className="text-brand-500" />
+                  Clinica Medica
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <StatsCard title="Total Pacientes" value={data.clinic.totalPatients} icon={<Users size={24} />} color="brand" />
+                  <StatsCard title="Consultas Hoje" value={data.clinic.todayAppointments} icon={<Calendar size={24} />} color="violet" />
+                  <StatsCard title="Faturas Pendentes" value={data.clinic.pendingBillings} icon={<DollarSign size={24} />} color="amber" />
+                  <StatsCard title="Receita Total" value={formatCurrency(Number(data.clinic.totalRevenue))} icon={<DollarSign size={24} />} color="brand" />
+                </div>
+              </div>
+            )}
+
+            {/* Construction stats */}
+            {data.construction && (
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <Building2 size={20} className="text-brand-500" />
+                  Construcao Civil
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <StatsCard title="Total Projetos" value={data.construction.totalProjects} icon={<Building2 size={24} />} color="brand" />
+                  <StatsCard title="Projetos Ativos" value={data.construction.activeProjects} icon={<Building2 size={24} />} color="violet" />
+                  <StatsCard title="Orcamento Total" value={formatCurrency(Number(data.construction.totalBudget))} icon={<DollarSign size={24} />} color="amber" />
+                  <StatsCard title="Despesas Totais" value={formatCurrency(Number(data.construction.totalExpenses))} icon={<DollarSign size={24} />} color="rose" />
+                </div>
+              </div>
+            )}
+
+            {/* Quick access modules */}
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Acesso Rapido</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {[
+                  { name: 'Clinica', href: '/clinic/patients', icon: Users, color: 'text-blue-500' },
+                  { name: 'Construcao', href: '/construction/projects', icon: Building2, color: 'text-amber-500' },
+                  { name: 'Barbearia', href: '/barbershop/bookings', icon: Scissors, color: 'text-violet-500' },
+                  { name: 'Imobiliaria', href: '/realestate/properties', icon: Home, color: 'text-cyan-500' },
+                  { name: 'Nutricao', href: '/nutrition/patients', icon: Apple, color: 'text-rose-500' },
+                  { name: 'Juridico', href: '/legal/cases', icon: Gavel, color: 'text-indigo-500' },
+                  { name: 'Restaurante', href: '/restaurant/orders', icon: UtensilsCrossed, color: 'text-amber-600' },
+                  { name: 'Estetica', href: '/aesthetic/appointments', icon: Sparkles, color: 'text-pink-500' },
+                  { name: 'Dentista', href: '/dental/appointments', icon: SmilePlus, color: 'text-cyan-600' },
+                ].map((mod) => (
+                  <a
+                    key={mod.name}
+                    href={mod.href}
+                    className="card hover:shadow-md hover:border-brand-300 dark:hover:border-brand-700 flex flex-col items-center gap-2 py-6 transition-all"
+                  >
+                    <mod.icon size={28} className={mod.color} />
+                    <span className="text-sm font-medium text-[var(--text-primary)]">{mod.name}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-[var(--text-muted)]">Carregando dados...</div>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {clinicStats && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Stethoscope className="text-blue-600" size={20} />
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Clínica Médica</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatsCard title="Total de Pacientes" value={clinicStats.totalPatients} icon={Users} color="blue" />
-                <StatsCard title="Consultas Hoje" value={clinicStats.todayAppointments} icon={Calendar} color="green" />
-                <StatsCard title="Faturas Pendentes" value={clinicStats.pendingBillings} icon={DollarSign} color="yellow" />
-                <StatsCard title="Receita Total" value={formatCurrency(Number(clinicStats.totalRevenue))} icon={DollarSign} color="green" />
-              </div>
-            </div>
-          )}
-
-          {constructionStats && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <HardHat className="text-orange-600" size={20} />
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Construção Civil</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatsCard title="Total de Projetos" value={constructionStats.totalProjects} icon={Building2} color="blue" />
-                <StatsCard title="Projetos Ativos" value={constructionStats.activeProjects} icon={Activity} color="green" />
-                <StatsCard title="Orçamento Total" value={formatCurrency(constructionStats.totalBudget)} icon={DollarSign} color="purple" />
-                <StatsCard title="Progresso Médio" value={`${constructionStats.avgProgress}%`} icon={ListTodo} color="yellow" subtitle={`${constructionStats.completedTasks}/${constructionStats.totalTasks} tarefas concluídas`} />
-              </div>
-              <div className="mt-4 card">
-                <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-2">Utilização do Orçamento</h3>
-                <div className="w-full bg-[var(--bg-tertiary)] rounded-full h-3">
-                  <div
-                    className={`h-3 rounded-full transition-all ${constructionStats.budgetUtilization > 90 ? 'bg-red-500' : constructionStats.budgetUtilization > 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
-                    style={{ width: `${Math.min(constructionStats.budgetUtilization, 100)}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-[var(--text-muted)] mt-1">
-                  <span>Gasto: {formatCurrency(constructionStats.totalExpenses)}</span>
-                  <span>{constructionStats.budgetUtilization}%</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!clinicStats && !constructionStats && (
-            <div className="card text-center py-12">
-              <Activity className="mx-auto text-[var(--text-muted)] mb-4" size={48} />
-              <h3 className="text-lg font-medium text-[var(--text-secondary)]">Sem dados disponíveis</h3>
-              <p className="text-sm text-[var(--text-muted)] mt-1">Comece cadastrando dados nos módulos de Clínica ou Construção</p>
-            </div>
-          )}
-        </div>
-      )}
     </DashboardLayout>
   );
 }
