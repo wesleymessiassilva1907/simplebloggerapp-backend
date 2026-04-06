@@ -732,6 +732,7 @@ model NutritionPlan {
   endDate       DateTime? @map("end_date")
   status        String    @default("active") // active, completed, paused
   notes         String?
+  deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -772,6 +773,7 @@ model NutritionAppointment {
   weight          Decimal? // measured weight at appointment
   notes           String?
   recommendations String?
+  deletedAt       DateTime? @map("deleted_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -797,6 +799,7 @@ model NutritionMeasurement {
   chest        Decimal? // cm
   thigh        Decimal? // cm
   notes        String?
+  deletedAt    DateTime? @map("deleted_at")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
