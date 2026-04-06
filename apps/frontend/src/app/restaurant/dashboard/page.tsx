@@ -201,7 +201,7 @@ export default function RestaurantDashboardPage() {
                           ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                           : o.status === 'cancelled' || o.status === 'cancelado'
                           ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                          : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]'
                       }`}
                     >
                       {o.status}

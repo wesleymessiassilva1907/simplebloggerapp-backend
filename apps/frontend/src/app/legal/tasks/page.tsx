@@ -164,7 +164,7 @@ export default function LegalTasksPage() {
       accessor: 'id' as keyof Task,
       cell: (item: Task) => (
         <div className="flex gap-2">
-          <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-800">
+          <button onClick={() => handleEdit(item)} className="text-brand-500 hover:text-brand-700">
             <Pencil size={16} />
           </button>
           <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-800">
@@ -187,7 +187,7 @@ export default function LegalTasksPage() {
               setForm(initialForm);
               setShowModal(true);
             }}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="btn-primary flex items-center gap-2"
           >
             <Plus size={16} />
             Nova Tarefa
@@ -312,7 +312,7 @@ export default function LegalTasksPage() {
             >
               Cancelar
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button type="submit" className="btn-primary">
               {editItem ? 'Atualizar' : 'Criar'}
             </button>
           </div>

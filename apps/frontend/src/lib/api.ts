@@ -25,11 +25,26 @@ export async function api<T = any>(endpoint: string, options: FetchOptions = {})
   });
 
   if (response.status === 401) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('vertix_token');
-      localStorage.removeItem('vertix_user');
-      window.location.href = '/auth/login';
+    // Try refresh before giving up
+    const currentToken = getToken();
+    if (currentToken) {
+      try {
+        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+        });
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          setAuth(data.access_token, data.user);
+          // Retry original request with new token
+          headers['Authorization'] = `Bearer ${data.access_token}`;
+          const retryResponse = await fetch(`${API_URL}${endpoint}`, { ...fetchOptions, headers });
+          if (retryResponse.ok) return retryResponse.json();
+        }
+      } catch {}
     }
+    clearAuth();
+    if (typeof window !== 'undefined') window.location.href = '/auth/login';
     throw new Error('Unauthorized');
   }
 

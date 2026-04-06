@@ -223,7 +223,7 @@ export default function AestheticDashboardPage() {
                             ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                             : b.status === 'overdue' || b.status === 'atrasado'
                             ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                            : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]'
                         }`}
                       >
                         {b.status}
