@@ -63,6 +63,30 @@
   }
 }
 
+/* Focus states */
+@layer base {
+  *:focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-surface-900;
+  }
+
+  /* Skip navigation */
+  .skip-nav {
+    @apply absolute -top-full left-4 z-[100] bg-brand-500 text-white px-4 py-2 rounded-b-lg font-medium text-sm transition-all;
+  }
+  .skip-nav:focus {
+    @apply top-0;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @keyframes slide-in {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
