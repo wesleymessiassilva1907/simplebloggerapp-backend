@@ -62,3 +62,11 @@
     @apply bg-[var(--bg-secondary)] rounded-xl shadow-sm border border-[var(--border)] p-6 flex flex-col transition-colors duration-200 hover:shadow-md hover:border-brand-200 dark:hover:border-brand-800;
   }
 }
+
+@keyframes slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}

@@ -1,26 +1,31 @@
 'use client';
 
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, Menu } from 'lucide-react';
 import { getUser } from '@/lib/api';
 import { useEffect, useState } from 'react';
 import ThemeToggle from '@/components/ThemeToggle';
+import { useSidebar } from './SidebarContext';
 
 export default function Header() {
   const [user, setUser] = useState<any>(null);
+  const { toggle } = useSidebar();
 
   useEffect(() => {
     setUser(getUser());
   }, []);
 
   return (
-    <header className="h-16 border-b border-[var(--border)] bg-[var(--bg-secondary)] flex items-center justify-between px-6 transition-colors duration-200">
+    <header className="h-16 border-b border-[var(--border)] bg-[var(--bg-secondary)] flex items-center justify-between px-4 sm:px-6 transition-colors duration-200">
       <div className="flex items-center gap-4">
+        <button onClick={toggle} className="lg:hidden p-2 rounded-lg hover:bg-[var(--bg-tertiary)]" aria-label="Menu">
+          <Menu size={20} className="text-[var(--text-primary)]" />
+        </button>
         <div className="relative">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="Buscar..."
-            className="input-field pl-10 w-64"
+            className="input-field pl-10 w-40 sm:w-64"
           />
         </div>
       </div>

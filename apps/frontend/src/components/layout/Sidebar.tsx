@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { clearAuth } from '@/lib/api';
+import { useSidebar } from './SidebarContext';
 
 type ModuleKey = 'clinic' | 'construction' | 'barbershop' | 'realestate' | 'nutrition' | 'legal' | 'restaurant' | 'aesthetic' | 'dental';
 
@@ -115,6 +116,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [module, setModule] = useState<ModuleKey>('clinic');
   const pathname = usePathname();
+  const { isMobileOpen, close } = useSidebar();
 
   const menu = menus[module];
 
@@ -124,60 +126,71 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className={cn(
-      'h-screen bg-[var(--sidebar-bg)] text-white flex flex-col transition-all duration-300',
-      collapsed ? 'w-16' : 'w-64'
-    )}>
-      <div className="flex items-center justify-between p-4 border-b border-brand-900/30 dark:border-surface-800">
-        {!collapsed && <h1 className="text-xl font-bold bg-gradient-to-r from-brand-400 to-violet-400 bg-clip-text text-transparent">Vertix</h1>}
-        <button onClick={() => setCollapsed(!collapsed)} className="p-1 rounded hover:bg-[var(--sidebar-hover)]">
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
-      </div>
-
-      {!collapsed && (
-        <div className="p-3">
-          <select
-            value={module}
-            onChange={(e) => setModule(e.target.value as ModuleKey)}
-            className="w-full bg-brand-900/50 text-white text-sm rounded-lg px-3 py-2 border border-brand-800/50 focus:border-brand-500 focus:outline-none"
-          >
-            {modules.map((m) => (
-              <option key={m.key} value={m.key}>{m.label}</option>
-            ))}
-          </select>
-        </div>
+    <>
+      {/* Mobile backdrop */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={close} />
       )}
+      <aside className={cn(
+        'h-screen bg-[var(--sidebar-bg)] text-white flex flex-col transition-all duration-300 z-50',
+        // Desktop
+        collapsed ? 'w-16' : 'w-64',
+        // Mobile: fixed position overlay
+        'fixed lg:relative',
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      )}>
+        <div className="flex items-center justify-between p-4 border-b border-brand-900/30 dark:border-surface-800">
+          {!collapsed && <h1 className="text-xl font-bold bg-gradient-to-r from-brand-400 to-violet-400 bg-clip-text text-transparent">Vertix</h1>}
+          <button onClick={() => setCollapsed(!collapsed)} className="p-1 rounded hover:bg-[var(--sidebar-hover)] hidden lg:block">
+            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
+        </div>
 
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {menu.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                isActive ? 'bg-[var(--sidebar-active)] text-white' : 'text-gray-300 hover:bg-[var(--sidebar-hover)] hover:text-white'
-              )}
-              title={collapsed ? item.name : undefined}
+        {!collapsed && (
+          <div className="p-3">
+            <select
+              value={module}
+              onChange={(e) => setModule(e.target.value as ModuleKey)}
+              className="w-full bg-brand-900/50 text-white text-sm rounded-lg px-3 py-2 border border-brand-800/50 focus:border-brand-500 focus:outline-none"
             >
-              <item.icon size={20} />
-              {!collapsed && <span>{item.name}</span>}
-            </Link>
-          );
-        })}
-      </nav>
+              {modules.map((m) => (
+                <option key={m.key} value={m.key}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
-      <div className="p-3 border-t border-brand-900/30 dark:border-surface-800 space-y-1">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-[var(--sidebar-hover)] hover:text-white w-full transition-colors"
-        >
-          <LogOut size={20} />
-          {!collapsed && <span>Sair</span>}
-        </button>
-      </div>
-    </aside>
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          {menu.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => { if (window.innerWidth < 1024) close(); }}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                  isActive ? 'bg-[var(--sidebar-active)] text-white' : 'text-gray-300 hover:bg-[var(--sidebar-hover)] hover:text-white'
+                )}
+                title={collapsed ? item.name : undefined}
+              >
+                <item.icon size={20} />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-3 border-t border-brand-900/30 dark:border-surface-800 space-y-1">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-[var(--sidebar-hover)] hover:text-white w-full transition-colors"
+          >
+            <LogOut size={20} />
+            {!collapsed && <span>Sair</span>}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

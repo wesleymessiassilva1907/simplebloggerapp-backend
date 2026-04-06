@@ -61,12 +61,12 @@ export default function DataTable<T extends Record<string, any>>({
                   {(onEdit || onDelete) && (
                     <td className="px-4 py-3 text-right space-x-2">
                       {onEdit && (
-                        <button onClick={() => onEdit(item)} className="p-1.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/30 text-brand-500 transition-colors" title="Editar">
+                        <button onClick={() => onEdit(item)} className="p-2.5 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/30 text-brand-500 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Editar" aria-label="Editar registro">
                           <Edit2 size={16} />
                         </button>
                       )}
                       {onDelete && (
-                        <button onClick={() => onDelete(item)} className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/30 text-rose-500 transition-colors" title="Excluir">
+                        <button onClick={() => onDelete(item)} className="p-2.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/30 text-rose-500 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Excluir" aria-label="Excluir registro">
                           <Trash2 size={16} />
                         </button>
                       )}
