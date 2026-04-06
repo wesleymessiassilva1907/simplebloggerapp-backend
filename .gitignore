@@ -1,6 +1,53 @@
-/node_modules
-*.env
-package-lock.json
-/public/storyImages/*
-!public/storyImages/.gitkeep
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+build/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test
+coverage/
+
+# Docker
+docker-data/
+
+# Prisma
+apps/backend/prisma/*.db
+
+# MinIO data
+minio-data/
+
+# Postgres data
+postgres-data/
+
+# Redis data
+redis-data/
+
+# Grafana data
+grafana-data/
+
+# Prometheus data
+prometheus-data/

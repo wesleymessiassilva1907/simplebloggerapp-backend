@@ -1,0 +1,369 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== CORE ====================
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  status    String   @default("active") // active, suspended, canceled
+  plan      String   @default("free")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users               User[]
+  auditLogs           AuditLog[]
+  notifications       Notification[]
+  subscriptionPlans   SubscriptionPlan[]
+  attachments         Attachment[]
+  clinicPatients      ClinicPatient[]
+  clinicDoctors       ClinicDoctor[]
+  clinicAppointments  ClinicAppointment[]
+  clinicMedicalRecords ClinicMedicalRecord[]
+  clinicBillings      ClinicBilling[]
+  constructionProjects ConstructionProject[]
+  constructionTasks   ConstructionTask[]
+  constructionExpenses ConstructionExpense[]
+  constructionWorkers ConstructionWorker[]
+  constructionProjectWorkers ConstructionProjectWorker[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  tenantId     String   @map("tenant_id")
+  name         String
+  email        String
+  passwordHash String   @map("password_hash")
+  status       String   @default("active") // active, inactive, suspended
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id])
+  userRoles UserRole[]
+  auditLogs AuditLog[]
+
+  clinicAppointmentsAsDoctor ClinicAppointment[] @relation("DoctorAppointments")
+  clinicMedicalRecordsAsDoctor ClinicMedicalRecord[] @relation("DoctorRecords")
+
+  @@unique([email, tenantId])
+  @@index([tenantId])
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+
+  userRoles UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  roleId String @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  userId    String?  @map("user_id")
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, entity])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  userId    String?  @map("user_id")
+  type      String   // email, whatsapp, push
+  title     String
+  content   String
+  status    String   @default("pending") // pending, sent, failed
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("notifications")
+}
+
+model SubscriptionPlan {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  planName    String   @map("plan_name")
+  price       Decimal  @default(0)
+  currency    String   @default("BRL")
+  status      String   @default("active") // active, canceled, past_due
+  startDate   DateTime @default(now()) @map("start_date")
+  endDate     DateTime? @map("end_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("subscription_plans")
+}
+
+model Attachment {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  fileName    String   @map("file_name")
+  filePath    String   @map("file_path")
+  contentType String   @map("content_type")
+  size        Int
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  clinicMedicalRecords ClinicMedicalRecord[]
+
+  @@index([tenantId])
+  @@map("attachments")
+}
+
+// ==================== CLINIC ====================
+
+model ClinicPatient {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  name             String
+  cpf              String?
+  birthDate        DateTime? @map("birth_date")
+  phone            String?
+  email            String?
+  address          String?
+  emergencyContact String?  @map("emergency_contact")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id])
+  appointments  ClinicAppointment[]
+  medicalRecords ClinicMedicalRecord[]
+  billings      ClinicBilling[]
+
+  @@index([tenantId])
+  @@map("clinic_patients")
+}
+
+model ClinicDoctor {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  email     String?
+  specialty String?
+  crm       String?
+  phone     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant       Tenant              @relation(fields: [tenantId], references: [id])
+  appointments ClinicAppointment[]
+  medicalRecords ClinicMedicalRecord[]
+
+  @@index([tenantId])
+  @@map("clinic_doctors")
+}
+
+model ClinicAppointment {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  patientId       String   @map("patient_id")
+  doctorId        String   @map("doctor_id")
+  userId          String?  @map("user_id")
+  appointmentDate DateTime @map("appointment_date")
+  status          String   @default("scheduled") // scheduled, confirmed, in_progress, completed, canceled
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id])
+  patient ClinicPatient @relation(fields: [patientId], references: [id])
+  doctor  ClinicDoctor  @relation(fields: [doctorId], references: [id])
+  user    User?         @relation("DoctorAppointments", fields: [userId], references: [id])
+
+  medicalRecords ClinicMedicalRecord[]
+  billings       ClinicBilling[]
+
+  @@index([tenantId])
+  @@index([tenantId, doctorId, appointmentDate])
+  @@map("clinic_appointments")
+}
+
+model ClinicMedicalRecord {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  patientId     String   @map("patient_id")
+  doctorId      String   @map("doctor_id")
+  userId        String?  @map("user_id")
+  appointmentId String?  @map("appointment_id")
+  description   String
+  diagnosis     String?
+  prescription  String?
+  attachmentId  String?  @map("attachment_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant      Tenant             @relation(fields: [tenantId], references: [id])
+  patient     ClinicPatient      @relation(fields: [patientId], references: [id])
+  doctor      ClinicDoctor       @relation(fields: [doctorId], references: [id])
+  user        User?              @relation("DoctorRecords", fields: [userId], references: [id])
+  appointment ClinicAppointment? @relation(fields: [appointmentId], references: [id])
+  attachment  Attachment?        @relation(fields: [attachmentId], references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, patientId])
+  @@map("clinic_medical_records")
+}
+
+model ClinicBilling {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  patientId     String    @map("patient_id")
+  appointmentId String?   @map("appointment_id")
+  amount        Decimal
+  status        String    @default("pending") // pending, paid, overdue, canceled
+  paymentMethod String?   @map("payment_method")
+  dueDate       DateTime? @map("due_date")
+  paidAt        DateTime? @map("paid_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant      Tenant             @relation(fields: [tenantId], references: [id])
+  patient     ClinicPatient      @relation(fields: [patientId], references: [id])
+  appointment ClinicAppointment? @relation(fields: [appointmentId], references: [id])
+
+  @@index([tenantId])
+  @@map("clinic_billings")
+}
+
+// ==================== CONSTRUCTION ====================
+
+model ConstructionProject {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  name        String
+  description String?
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  budget      Decimal?
+  status      String    @default("planning") // planning, in_progress, paused, completed, canceled
+  location    String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  tenant   Tenant                      @relation(fields: [tenantId], references: [id])
+  tasks    ConstructionTask[]
+  expenses ConstructionExpense[]
+  projectWorkers ConstructionProjectWorker[]
+
+  @@index([tenantId])
+  @@map("construction_projects")
+}
+
+model ConstructionTask {
+  id              String    @id @default(uuid())
+  tenantId        String    @map("tenant_id")
+  projectId       String    @map("project_id")
+  name            String
+  description     String?
+  assignedTo      String?   @map("assigned_to")
+  startDate       DateTime? @map("start_date")
+  endDate         DateTime? @map("end_date")
+  status          String    @default("pending") // pending, in_progress, completed, blocked
+  progressPercent Int       @default(0) @map("progress_percent")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  tenant  Tenant              @relation(fields: [tenantId], references: [id])
+  project ConstructionProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, projectId])
+  @@map("construction_tasks")
+}
+
+model ConstructionExpense {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  projectId   String   @map("project_id")
+  description String
+  category    String?
+  amount      Decimal
+  expenseDate DateTime @map("expense_date")
+  supplier    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant              @relation(fields: [tenantId], references: [id])
+  project ConstructionProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, projectId])
+  @@map("construction_expenses")
+}
+
+model ConstructionWorker {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  email     String?
+  phone     String?
+  role      String?
+  dailyCost Decimal? @map("daily_cost")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant         Tenant                      @relation(fields: [tenantId], references: [id])
+  projectWorkers ConstructionProjectWorker[]
+
+  @@index([tenantId])
+  @@map("construction_workers")
+}
+
+model ConstructionProjectWorker {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  projectId     String    @map("project_id")
+  workerId      String    @map("worker_id")
+  allocatedFrom DateTime? @map("allocated_from")
+  allocatedTo   DateTime? @map("allocated_to")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant  Tenant              @relation(fields: [tenantId], references: [id])
+  project ConstructionProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  worker  ConstructionWorker  @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("construction_project_workers")
+}
